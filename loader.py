@@ -1,7 +1,7 @@
 from telebot import TeleBot
 from telebot.storage import StateMemoryStorage
 from dotenv import load_dotenv
-from os import environ, path
+from os import path, environ
 
 load_dotenv(dotenv_path=path.abspath('.env'))
 
