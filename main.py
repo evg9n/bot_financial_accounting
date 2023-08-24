@@ -4,6 +4,8 @@ from telebot.custom_filters import StateFilter
 from telebot.types import BotCommand
 from os.path import abspath, join
 from logging import config, getLogger, DEBUG, INFO
+from work_database import create_database, create_table_users
+from asyncio import run, gather
 
 
 FORMAT = "%(levelname)-4s %(name)s [%(asctime)s] %(message)s [line: %(lineno)d]"
@@ -23,7 +25,7 @@ log_config = {
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
-            'level': level,
+            'level': INFO,
             'formatter': 'standart',
             'stream': 'ext://sys.stdout'
         },
@@ -59,9 +61,20 @@ log = getLogger()
 # )
 
 
-if __name__ == '__main__':
-    bot.add_custom_filter(StateFilter(bot))
+async def main():
     # bot.set_my_commands(
     #     [BotCommand(*i) for i in DEFAULT_COMMANDS]
     # )
-    bot.infinity_polling()
+    bot.add_custom_filter(StateFilter(bot))
+    await gather(bot.infinity_polling())
+
+
+if __name__ == '__main__':
+    if create_database():
+        if create_table_users():
+            run(main())
+        else:
+            log.warning('Остановка ищ-за создании таблицы users')
+    else:
+        log.warning('Остановка из-за создании базы данных')
+    log.info('STOP')

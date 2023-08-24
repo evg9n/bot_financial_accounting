@@ -36,8 +36,9 @@ def create_database() -> bool:
             return True
         except errors.OperationalError:
             log.warning(f'Не удалось создать создать базу данных {NAME_DATABASE}: {format_exc()}')
+            return False
         else:
-            log.debug(f'Создана база данных {NAME_DATABASE}')
+            log.info(f'Создана база данных {NAME_DATABASE}')
             return True
         finally:
             conn.close()
@@ -67,7 +68,7 @@ def drop_database() -> bool:
             log.debug(f'База данных {NAME_DATABASE} не существует: {format_exc()}')
             return False
         else:
-            log.debug(f'Удалена база данных {NAME_DATABASE}')
+            log.info(f'Удалена база данных {NAME_DATABASE}')
             return True
         finally:
             conn.close()
@@ -98,10 +99,13 @@ def create_table_users():
             conn.commit()
         except errors.DuplicateTable:
             log.debug(f'Таблица users уже существует: {format_exc()}')
+            return True
         except errors.OperationalError:
             log.warning(f'Не удалось создать таблицу users: {format_exc()}')
+            return False
         else:
-            log.debug(f'Создана таблица users')
+            log.info(f'Создана таблица users')
+            return True
         finally:
             conn.close()
             cursor.close()
@@ -151,7 +155,7 @@ def add_users(message: Message):
         except errors.UniqueViolation:
             return True
         else:
-            log.debug(f'Добавлен пользователь {user_id} {username}')
+            log.info(f'Добавлен пользователь {user_id} {username}')
             return True
         finally:
             conn.close()
@@ -161,6 +165,6 @@ def add_users(message: Message):
 
 
 if __name__ == "__main__":
-    create_database()
-    create_table_users()
-    # drop_database()
+    # create_database()
+    # create_table_users()
+    drop_database()
