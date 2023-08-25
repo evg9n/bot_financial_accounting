@@ -4,7 +4,7 @@ from telebot.custom_filters import StateFilter
 from telebot.types import BotCommand
 from os.path import abspath, join
 from logging import config, getLogger, DEBUG, INFO
-from work_database import create_database, create_table_users
+from work_database.create import create_database, create_table_users, create_table_names_finance, create_table_state
 from asyncio import run, gather
 
 
@@ -72,9 +72,15 @@ async def main():
 if __name__ == '__main__':
     if create_database():
         if create_table_users():
-            run(main())
+            if create_table_names_finance():
+                if create_table_state():
+                    run(main())
+                else:
+                    log.warning('Остановка из-за ошибки создании таблицы state')
+            else:
+                log.warning('Остановка из-за ошибки создании таблицы names_finance')
         else:
-            log.warning('Остановка ищ-за создании таблицы users')
+            log.warning('Остановка из-за ошибки создании таблицы users')
     else:
-        log.warning('Остановка из-за создании базы данных')
+        log.warning('Остановка из-за ошибки создании базы данных')
     log.info('STOP')
