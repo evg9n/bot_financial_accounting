@@ -7,7 +7,7 @@ from traceback import format_exc
 # from main import bot
 
 
-log = getLogger('work_database')
+log = getLogger('create_database')
 
 USER = environ.get('USER')
 NAME_DATABASE = environ.get('NAME_DATABASE')
@@ -17,6 +17,10 @@ PORT = int(environ.get('PORT'))
 
 
 def create_database() -> bool:
+    """
+    Создании базы данных
+    :return: bool рузультат выполнения
+    """
     try:
         try:
             conn = connect(
@@ -48,6 +52,10 @@ def create_database() -> bool:
 
 
 def drop_database() -> bool:
+    """
+    Удаление базы данных
+    :return: bool рузультат выполнения
+    """
     try:
         try:
             conn = connect(
@@ -77,7 +85,11 @@ def drop_database() -> bool:
         return False
 
 
-def create_table_users():
+def create_table_users() -> bool:
+    """
+    Созлание таблицы users
+    :return: bool рузультат выполнения
+    """
     try:
         try:
             conn = connect(
@@ -89,7 +101,7 @@ def create_table_users():
             )
             cursor = conn.cursor()
             sql_request = f"""CREATE TABLE users (
-                            user_id BIGINT UNIQUE,
+                            user_id BIGINT UNIQUE NOT NULL,
                             username CHARACTER VARYING(50),
                             first_name CHARACTER VARYING(50),
                             last_name CHARACTER VARYING(50),
@@ -113,17 +125,86 @@ def create_table_users():
         return False
 
 
-def add_users(message: Message):
+def create_table_names_finance() -> bool:
+    """
+    Созлание таблицы names_finance
+    :return: bool рузультат выполнения
+    """
+    try:
+        try:
+            conn = connect(
+                    user=USER,
+                    password=PASSWORD,
+                    database=NAME_DATABASE,
+                    host=HOST,
+                    port=PORT
+            )
+            cursor = conn.cursor()
+            sql_request = f"""CREATE TABLE names_finance (
+                            id SERIAL PRIMARY KEY,
+                            user_id BIGINT REFERENCES users(user_id) ON DELETE CASCADE NOT NULL,
+                            name_table VARCHAR(50) NOT NULL)"""
+            cursor.execute(query=sql_request)
+            conn.commit()
+        except errors.DuplicateTable:
+            log.debug(f'Таблица names_finance уже существует: {format_exc()}')
+            return True
+        except (errors.OperationalError, errors.SyntaxError):
+            log.warning(f'Не удалось создать таблицу names_finance: {format_exc()}')
+            return False
+        else:
+            log.info(f'Создана таблица names_finance')
+            return True
+        finally:
+            conn.close()
+            cursor.close()
+    except UnboundLocalError:
+        return False
+
+
+def create_table_state() -> bool:
+    """
+    Созлание таблицы names_finance
+    :return: bool рузультат выполнения
+    """
+    try:
+        try:
+            conn = connect(
+                    user=USER,
+                    password=PASSWORD,
+                    database=NAME_DATABASE,
+                    host=HOST,
+                    port=PORT
+            )
+            cursor = conn.cursor()
+            sql_request = f"""CREATE TABLE state (
+                            id BIGINT UNIQUE NOT NULL,
+                            user_id BIGINT REFERENCES users(user_id) ON DELETE CASCADE NOT NULL ,
+                            state VARCHAR(50) NOT NULL DEFAULT 'none')"""
+            cursor.execute(query=sql_request)
+            conn.commit()
+        except errors.DuplicateTable:
+            log.debug(f'Таблица state уже существует: {format_exc()}')
+            return True
+        except (errors.OperationalError, errors.SyntaxError):
+            log.warning(f'Не удалось создать таблицу state: {format_exc()}')
+            return False
+        else:
+            log.info(f'Создана таблица state')
+            return True
+        finally:
+            conn.close()
+            cursor.close()
+    except UnboundLocalError:
+        return False
+
+
+def create_state_user(user_id: int) -> bool:
     """
     Добавление пользователя в таблицу users
+    :param message: объект Message telebot
+    :return: bool рузультат выполнения
     """
-    from_user = message.from_user
-    user_id = from_user.id
-    username = from_user.username
-    first_name = from_user.first_name
-    last_name = from_user.last_name
-    language_code = from_user.language_code
-    chat_id = message.chat.id
     try:
         try:
             conn = connect(
@@ -134,28 +215,29 @@ def add_users(message: Message):
                 port=PORT
             )
             cursor =  conn.cursor()
-            sql_query = f"""INSERT INTO users (user_id, username, first_name, last_name, 
-                            language_code, chat_id) 
-                            VALUES ({user_id}, '{username}', '{first_name}', '{last_name}', 
-                            '{language_code}', {chat_id})"""
+            sql_query = f"""INSERT INTO state (id, user_id, state) 
+                            VALUES ({user_id}, {user_id}, 'none')"""
             cursor.execute(query=sql_query)
             conn.commit()
         except errors.OperationalError:
-            log.error(f'Не удалось добавить пользователя {user_id} {username}: {format_exc()}')
+            log.error(f'Не удалось добавить состояние none пользователя {user_id}: {format_exc()}')
             return False
         except errors.UndefinedTable:
             log.error(f'{format_exc()}')
-            create_table_users()
-            cursor.execute(query=sql_query)
-            conn.commit()
+            # create_table_users()
+            # cursor.execute(query=sql_query)
+            # conn.commit()
+            return False
         except errors.DuplicateColumn:
             log.warning(f'{format_exc()}')
+            return True
         except errors.UndefinedColumn:
             log.warning(f'{format_exc()}')
+            return False
         except errors.UniqueViolation:
             return True
         else:
-            log.info(f'Добавлен пользователь {user_id} {username}')
+            log.info(f'Добавлено состояние none пользователя {user_id}')
             return True
         finally:
             conn.close()
@@ -163,8 +245,3 @@ def add_users(message: Message):
     except UnboundLocalError:
         return False
 
-
-if __name__ == "__main__":
-    # create_database()
-    # create_table_users()
-    drop_database()
