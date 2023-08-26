@@ -5,13 +5,55 @@ from logging import getLogger
 from traceback import format_exc
 
 
-log = getLogger('write_database')
+log = getLogger('set_database')
 
 USER = environ.get('USER')
 NAME_DATABASE = environ.get('NAME_DATABASE')
 PASSWORD = environ.get('PASSWORD')
 HOST = environ.get('HOST')
 PORT = int(environ.get('PORT'))
+
+
+def set_query(sql_query: str) -> bool:
+    """
+    Добавление пользователя в таблицу users
+    :param sql_query: sql-запрос
+    :return: bool рузультат выполнения
+    """
+    try:
+        try:
+            conn = connect(
+                user=USER,
+                password=PASSWORD,
+                database=NAME_DATABASE,
+                host=HOST,
+                port=PORT
+            )
+            cursor = conn.cursor()
+            cursor.execute(query=sql_query)
+            conn.commit()
+        except errors.OperationalError:
+            log.error(f'Не удалось выполнить set-запрос {sql_query}: {format_exc()}')
+            return False
+        except errors.UndefinedTable:
+            log.error(f'{format_exc()}')
+            return False
+        except errors.DuplicateColumn:
+            log.warning(f'{format_exc()}')
+            return True
+        except errors.UndefinedColumn:
+            log.warning(f'{format_exc()}')
+            return False
+        except errors.UniqueViolation:
+            return True
+        else:
+            log.info(f'Выполнен set-запрос {sql_query}')
+            return True
+        finally:
+            conn.close()
+            cursor.close()
+    except UnboundLocalError:
+        return False
 
 
 def set_users(message: Message) -> bool:
@@ -27,139 +69,71 @@ def set_users(message: Message) -> bool:
     last_name = from_user.last_name
     language_code = from_user.language_code
     chat_id = message.chat.id
-    try:
-        try:
-            conn = connect(
-                user=USER,
-                password=PASSWORD,
-                database=NAME_DATABASE,
-                host=HOST,
-                port=PORT
-            )
-            cursor =  conn.cursor()
-            sql_query = f"""INSERT INTO users (user_id, username, first_name, last_name, 
-                            language_code, chat_id) 
-                            VALUES ({user_id}, '{username}', '{first_name}', '{last_name}', 
-                            '{language_code}', {chat_id})"""
-            cursor.execute(query=sql_query)
-            conn.commit()
-        except errors.OperationalError:
-            log.error(f'Не удалось добавить пользователя {user_id} {username}: {format_exc()}')
-            return False
-        except errors.UndefinedTable:
-            log.error(f'{format_exc()}')
-            # create_table_users()
-            # cursor.execute(query=sql_query)
-            # conn.commit()
-            return False
-        except errors.DuplicateColumn:
-            log.warning(f'{format_exc()}')
-            return True
-        except errors.UndefinedColumn:
-            log.warning(f'{format_exc()}')
-            return False
-        except errors.UniqueViolation:
-            return True
-        else:
-            log.info(f'Добавлен пользователь {user_id} {username}')
-            return True
-        finally:
-            conn.close()
-            cursor.close()
-    except UnboundLocalError:
-        return False
+    sql_query = f"""INSERT INTO users (user_id, username, first_name, last_name, 
+                    language_code, chat_id) 
+                    VALUES ({user_id}, '{username}', '{first_name}', '{last_name}', 
+                    '{language_code}', {chat_id})"""
+    return set_query(sql_query=sql_query)
 
 
 def set_state(user_id: int, state=None) -> bool:
     """
-    Добавление пользователя в таблицу users
-    :param message: объект Message telebot
-    :return: bool рузультат выполнения
+    Изменение в таблице состояние само состояние
+    :param user_id: id пользователя
+    :return: bool результат выполнения
     """
-    try:
-        try:
-            conn = connect(
-                user=USER,
-                password=PASSWORD,
-                database=NAME_DATABASE,
-                host=HOST,
-                port=PORT
-            )
-            cursor = conn.cursor()
-            sql_query = f"""UPDATE state set state = '{"none" if state is None else state}'
-                            WHERE ID = {user_id}"""
-            cursor.execute(query=sql_query)
-            conn.commit()
-        except errors.OperationalError:
-            log.error(f'Не удалось добавить состояние {state} пользователя {user_id}: {format_exc()}')
-            return False
-        except errors.UndefinedTable:
-            log.error(f'{format_exc()}')
-            # create_table_users()
-            # cursor.execute(query=sql_query)
-            # conn.commit()
-            return False
-        except errors.DuplicateColumn:
-            log.warning(f'{format_exc()}')
-            return True
-        except errors.UndefinedColumn:
-            log.warning(f'{format_exc()}')
-            return False
-        except errors.UniqueViolation:
-            return True
-        else:
-            log.info(f'Добавлено состояние {state} пользователя {user_id}')
-            return True
-        finally:
-            conn.close()
-            cursor.close()
-    except UnboundLocalError:
-        return False
+    sql_query = f"""UPDATE state set state = '{"none" if state is None else state}'
+                    WHERE ID = {user_id}"""
+    return set_query(sql_query=sql_query)
 
 
-def set_names_finance(name: str, user_id: int) -> bool:
+def set_state_name_table(user_id: int, name_table: str) -> bool:
+    """
+        Изменение в таблице состояние текущий финанс
+        :param user_id: id пользователя
+        :param name_table: наиминование финанса
+        :return: bool результат выполнения
+        """
+    sql_query = f"""UPDATE state set name_table = '{name_table}'
+                        WHERE ID = {user_id}"""
+    return set_query(sql_query=sql_query)
+
+
+def set_state_sum_operation(user_id: int, sum_operation: float) -> bool:
+    """
+        Изменение в таблице состояние суммы операции
+        :param user_id: id пользователя
+        :param sum_operation: сохранение суммы
+        :return: bool результат выполнения
+        """
+    sql_query = f"""UPDATE state set sum_operation = '{sum_operation}'
+                        WHERE ID = {user_id}"""
+    return set_query(sql_query=sql_query)
+
+
+def set_state_finance_operations_id(user_id: int, finance_operations_id: int) -> bool:
+    """
+        Изменение в таблице состояние id текущей операции
+        :param user_id: id пользователя
+        :param finance_operations_id: id текущей операции
+        :return: bool результат выполнения
+        """
+    sql_query = f"""UPDATE state set finance_operations_id = '{finance_operations_id}'
+                        WHERE ID = {user_id}"""
+    return set_query(sql_query=sql_query)
+
+
+def set_names_finance(name: str, user_id: int, delete: bool = False) -> bool:
     """
     записать финанса в names_finance
     :param user_id: id gользователя
     :param name: имя финанса
+    :parm delete: Удалить?
     :return: bool рузультат выполнения
     """
-    try:
-        try:
-            conn = connect(
-                user=USER,
-                password=PASSWORD,
-                database=NAME_DATABASE,
-                host=HOST,
-                port=PORT
-            )
-            cursor = conn.cursor()
-            sql_query = f"""INSERT INTO names_finance (user_id, name_table) 
-                            VALUES ({user_id}, '{name}')"""
-            cursor.execute(query=sql_query)
-            conn.commit()
-        except errors.OperationalError:
-            log.error(f'Не удалось записать новый финанс {name} для  {user_id}: {format_exc()}')
-            return False
-        except errors.UndefinedTable:
-            log.error(f'{format_exc()}')
-            # create_table_users()
-            # cursor.execute(query=sql_query)
-            # conn.commit()
-            return False
-        except errors.DuplicateColumn:
-            log.warning(f'{format_exc()}')
-            return True
-        except errors.UndefinedColumn:
-            log.warning(f'{format_exc()}')
-            return False
-        except errors.UniqueViolation:
-            return True
-        else:
-            log.info(f'Записать новый финанс {name} для  {user_id}')
-            return True
-        finally:
-            conn.close()
-            cursor.close()
-    except UnboundLocalError:
-        return False
+    if delete:
+        sql_query = f"DELETE FROM names_finance WHERE user_id = {user_id} AND name_table = '{name}'"
+    else:
+        sql_query = f"""INSERT INTO names_finance (user_id, name_table) 
+                        VALUES ({user_id}, '{name}')"""
+    return set_query(sql_query=sql_query)

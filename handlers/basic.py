@@ -2,9 +2,10 @@ from loader import bot
 from telebot.types import Message
 from logging import getLogger
 from work_database.set import set_users, set_state
-from work_database.get import get_state
+from work_database.get import get_state, get_test
 from work_database.create import create_state_user
-from keyboards.reply import main_menu, main_menu_buttons, list_finance
+from keyboards.reply.basic import main_menu, main_menu_buttons
+from keyboards.reply.finance import list_finance
 
 
 log = getLogger('handler_basic')
@@ -14,7 +15,9 @@ log = getLogger('handler_basic')
 async def start(message: Message):
     text = 'Дратути'
     set_users(message=message)
+    set_state(user_id=message.from_user.id)
     create_state_user(user_id=message.from_user.id)
+    # get_test()
     await bot.send_message(chat_id=message.from_user.id, text=text, reply_markup=main_menu())
 
 

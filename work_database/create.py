@@ -16,6 +16,28 @@ HOST = environ.get('HOST')
 PORT = int(environ.get('PORT'))
 
 
+def connect_database(with_database: bool = False) -> connect:
+    """
+    Подключение к postgresql
+    :param with_database: Подключиться к БД
+    """
+    if with_database:
+        return connect(
+            user=USER,
+            password=PASSWORD,
+            database=NAME_DATABASE,
+            host=HOST,
+            port=PORT
+        )
+    else:
+        return connect(
+            user=USER,
+            password=PASSWORD,
+            host=HOST,
+            port=PORT
+        )
+
+
 def create_database() -> bool:
     """
     Создании базы данных
@@ -23,12 +45,7 @@ def create_database() -> bool:
     """
     try:
         try:
-            conn = connect(
-                user=environ.get('USER'),
-                password=environ.get('PASSWORD'),
-                host=environ.get('HOST'),
-                port=int(environ.get('PORT')),
-            )
+            conn = connect_database()
             conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
             cursor = conn.cursor()
             name_database = environ.get('NAME_DATABASE')
@@ -58,12 +75,7 @@ def drop_database() -> bool:
     """
     try:
         try:
-            conn = connect(
-                user=environ.get('USER'),
-                password=environ.get('PASSWORD'),
-                host=environ.get('HOST'),
-                port=int(environ.get('PORT')),
-            )
+            conn = connect_database()
             conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
             cursor = conn.cursor()
             name_database = environ.get('NAME_DATABASE')
@@ -92,13 +104,7 @@ def create_table_users() -> bool:
     """
     try:
         try:
-            conn = connect(
-                    user=USER,
-                    password=PASSWORD,
-                    database=NAME_DATABASE,
-                    host=HOST,
-                    port=PORT
-            )
+            conn = connect_database(with_database=True)
             cursor = conn.cursor()
             sql_request = f"""CREATE TABLE users (
                             user_id BIGINT UNIQUE NOT NULL,
@@ -132,16 +138,10 @@ def create_table_names_finance() -> bool:
     """
     try:
         try:
-            conn = connect(
-                    user=USER,
-                    password=PASSWORD,
-                    database=NAME_DATABASE,
-                    host=HOST,
-                    port=PORT
-            )
+            conn = connect_database(with_database=True)
             cursor = conn.cursor()
             sql_request = f"""CREATE TABLE names_finance (
-                            id SERIAL PRIMARY KEY,
+                            id BIGSERIAL PRIMARY KEY,
                             user_id BIGINT REFERENCES users(user_id) ON DELETE CASCADE NOT NULL,
                             name_table VARCHAR(50) NOT NULL)"""
             cursor.execute(query=sql_request)
@@ -169,18 +169,16 @@ def create_table_state() -> bool:
     """
     try:
         try:
-            conn = connect(
-                    user=USER,
-                    password=PASSWORD,
-                    database=NAME_DATABASE,
-                    host=HOST,
-                    port=PORT
-            )
+            conn = connect_database(with_database=True)
             cursor = conn.cursor()
             sql_request = f"""CREATE TABLE state (
                             id BIGINT UNIQUE NOT NULL,
                             user_id BIGINT REFERENCES users(user_id) ON DELETE CASCADE NOT NULL ,
-                            state VARCHAR(50) NOT NULL DEFAULT 'none')"""
+                            state VARCHAR(50) NOT NULL DEFAULT 'none',
+                            name_table VARCHAR(50) DEFAULT NULL,
+                            sum_operation NUMERIC(21, 2) DEFAULT 0.00,
+                            finance_operations_id BIGINT DEFAULT NULL
+                            )"""
             cursor.execute(query=sql_request)
             conn.commit()
         except errors.DuplicateTable:
@@ -199,22 +197,50 @@ def create_table_state() -> bool:
         return False
 
 
-def create_state_user(user_id: int) -> bool:
+def create_table_finance_operations() -> bool:
     """
-    Добавление пользователя в таблицу users
-    :param message: объект Message telebot
+    Созлание таблицы finance_operations
     :return: bool рузультат выполнения
     """
     try:
         try:
-            conn = connect(
-                user=USER,
-                password=PASSWORD,
-                database=NAME_DATABASE,
-                host=HOST,
-                port=PORT
-            )
-            cursor =  conn.cursor()
+            conn = connect_database(with_database=True)
+            cursor = conn.cursor()
+            sql_request = f"""CREATE TABLE finance_operations (
+                            id BIGSERIAL PRIMARY KEY,
+                            user_id BIGINT REFERENCES users(user_id) ON DELETE CASCADE NOT NULL,
+                            name_table BIGINT REFERENCES names_finance(id) ON DELETE CASCADE NOT NULL,
+                            sum_operation NUMERIC(21, 2) NOT NULL,
+                            name_operation VARCHAR(500),
+                            date DATE NOT NULL)"""
+            cursor.execute(query=sql_request)
+            conn.commit()
+        except errors.DuplicateTable:
+            log.debug(f'Таблица state уже существует: {format_exc()}')
+            return True
+        except (errors.OperationalError, errors.SyntaxError):
+            log.warning(f'Не удалось создать таблицу finance_operations: {format_exc()}')
+            return False
+        else:
+            log.info(f'Создана таблица finance_operations')
+            return True
+        finally:
+            conn.close()
+            cursor.close()
+    except UnboundLocalError:
+        return False
+
+
+def create_state_user(user_id: int) -> bool:
+    """
+    Добавление пользователя в таблицу users
+    :param user_id: id пользователя
+    :return: bool результат выполнения
+    """
+    try:
+        try:
+            conn = connect_database(with_database=True)
+            cursor = conn.cursor()
             sql_query = f"""INSERT INTO state (id, user_id, state) 
                             VALUES ({user_id}, {user_id}, 'none')"""
             cursor.execute(query=sql_query)

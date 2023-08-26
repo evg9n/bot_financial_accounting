@@ -1,3 +1,5 @@
+from typing import Optional
+
 from loader import environ
 from telebot.types import Message
 from psycopg2 import connect, errors
@@ -14,11 +16,11 @@ HOST = environ.get('HOST')
 PORT = int(environ.get('PORT'))
 
 
-def get_names_finance(user_id) -> list:
+def get_query(sql_query: str) -> list:
     """
-    Получение списка финансов пользователя
-    :param user_id: id пользователя
-    :return: список с результатом
+    SQL-запрос
+    :param sql_query: sql-запрос
+    :return: список или кортеж с результатом
     """
     result = list()
     try:
@@ -30,18 +32,14 @@ def get_names_finance(user_id) -> list:
                 host=HOST,
                 port=PORT
             )
-            cursor =  conn.cursor()
-            sql_query = f"""SELECT name_table FROM names_finance WHERE user_id = {user_id}"""
+            cursor = conn.cursor()
             cursor.execute(query=sql_query)
             result = cursor.fetchall()
         except errors.OperationalError:
-            log.error(f'Не удалось найти пользователя {user_id} : {format_exc()}')
+            log.error(f'Не удалось выполнить запрос {sql_query}: {format_exc()}')
             return result
         except errors.UndefinedTable:
             log.error(f'{format_exc()}')
-            # create_table_users()
-            # cursor.execute(query=sql_query)
-            # conn.commit()
             return result
         except errors.DuplicateColumn:
             log.warning(f'{format_exc()}')
@@ -52,7 +50,7 @@ def get_names_finance(user_id) -> list:
         except errors.UniqueViolation:
             return result
         else:
-            log.info(f'Получены финансы пользователя {user_id}')
+            log.info(f'Выполнен запрос {sql_query}')
             return result
         finally:
             conn.close()
@@ -61,49 +59,46 @@ def get_names_finance(user_id) -> list:
         return result
 
 
-def get_state(user_id):
+def get_names_finance(user_id) -> list:
+    """
+    Получение списка финансов пользователя
+    :param user_id: id пользователя
+    :return: список с результатом
+    """
+    sql_query = f"""SELECT name_table FROM names_finance WHERE user_id = {user_id}"""
+    result = get_query(sql_query=sql_query)
+    return [element[0] for element in result]
+
+
+def get_state(user_id) -> str:
     """
     Получение состояние пользователя
     :param user_id: id пользователя
     :return: состояние пользователя
     """
-    result = 'none'
-    try:
-        try:
-            conn = connect(
-                user=USER,
-                password=PASSWORD,
-                database=NAME_DATABASE,
-                host=HOST,
-                port=PORT
-            )
-            cursor = conn.cursor()
-            sql_query = f"""SELECT state FROM state WHERE id = {user_id} LIMIT 1"""
-            cursor.execute(query=sql_query)
-            # print(1111111111111111111111111, cursor.fetchone()[0])
-            result = cursor.fetchone()[0]
-        except errors.OperationalError:
-            log.error(f'Не удалось найти пользователя {user_id} : {format_exc()}')
-            return result
-        except errors.UndefinedTable:
-            log.error(f'{format_exc()}')
-            # create_table_users()
-            # cursor.execute(query=sql_query)
-            # conn.commit()
-            return result
-        except errors.DuplicateColumn:
-            log.warning(f'{format_exc()}')
-            return result
-        except errors.UndefinedColumn:
-            log.warning(f'{format_exc()}')
-            return result
-        except errors.UniqueViolation:
-            return result
-        else:
-            log.info(f'Получены состояние пользователя {user_id}')
-            return result
-        finally:
-            conn.close()
-            cursor.close()
-    except UnboundLocalError:
-        return result
+    sql_query = f"""SELECT state FROM state WHERE id = {user_id} LIMIT 1"""
+    result = get_query(sql_query=sql_query)
+    return result[0][0] if result else 'none'
+
+
+def get_state_name_table(user_id) -> Optional[str]:
+    """
+    Получение текущего финанса из состояния
+    :param user_id: id пользователя
+    :return: текущий финанс
+    """
+    sql_query = f"""SELECT name_table FROM state WHERE id = {user_id} LIMIT 1"""
+    result = get_query(sql_query=sql_query)
+    return result[0][0] if result else None
+
+
+def get_test():
+    """
+    Получение текущего финанса из состояния
+    :param user_id: id пользователя
+    :return: текущий финанс
+    """
+    sql_query = f"""SELECT * FROM state"""
+    result = get_query(sql_query=sql_query)
+    # print(result[0][4] + 15)
+    # return result[0][0] if result else 'none'
