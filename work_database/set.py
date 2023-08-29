@@ -1,3 +1,5 @@
+import datetime
+
 from loader import environ
 from telebot.types import Message
 from psycopg2 import connect, errors
@@ -99,19 +101,56 @@ def set_state_name_table(user_id: int, name_table: str) -> bool:
     return set_query(sql_query=sql_query)
 
 
-def set_state_sum_operation(user_id: int, sum_operation: float) -> bool:
+def set_state_sum_operation(user_id: int, sum_operation: float = None) -> bool:
     """
         Изменение в таблице состояние суммы операции
         :param user_id: id пользователя
         :param sum_operation: сохранение суммы
         :return: bool результат выполнения
         """
-    sql_query = f"""UPDATE state set sum_operation = '{sum_operation}'
+    sql_query = f"""UPDATE state set sum_operation = {sum_operation}
                         WHERE ID = {user_id}"""
     return set_query(sql_query=sql_query)
 
 
-def set_state_finance_operations_id(user_id: int, finance_operations_id: int) -> bool:
+def set_state_message_id(user_id: int, message_id: int = None) -> bool:
+    """
+        Изменение в таблице состояние message_id
+        :param user_id: id пользователя
+        :param message_id: message_id
+        :return: bool результат выполнения
+        """
+    sql_query = f"""UPDATE state set message_id = {message_id}
+                        WHERE ID = {user_id}"""
+    return set_query(sql_query=sql_query)
+
+
+def set_state_date(user_id: int, date: datetime.date = None, column_date2: bool = False) -> bool:
+    """
+        Изменение в таблице состояние date
+        :param user_id: id пользователя
+        :param date: YYYY-MM_DD
+        :return: bool результат выполнения
+        """
+    column = 'date2' if column_date2 else 'date'
+    sql_query = f"""UPDATE state set {column} = '{date}'
+                        WHERE ID = {user_id}"""
+    return set_query(sql_query=sql_query)
+
+
+def set_state_categories_operation(user_id: int, categorie_operation: int = None) -> bool:
+    """
+    Изменение в таблице состояние set_state_categories_operation
+    :param user_id: id пользователя
+    :param categorie_operation: categorie_operation
+    :return: bool результат выполнения
+    """
+    sql_query = f"""UPDATE state set categories_operation = '{categorie_operation}'
+                    WHERE ID = {user_id}"""
+    return set_query(sql_query=sql_query)
+
+
+def set_state_finance_operations_id(user_id: int, finance_operations_id: int = None) -> bool:
     """
         Изменение в таблице состояние id текущей операции
         :param user_id: id пользователя
@@ -136,4 +175,15 @@ def set_names_finance(name: str, user_id: int, delete: bool = False) -> bool:
     else:
         sql_query = f"""INSERT INTO names_finance (user_id, name_table) 
                         VALUES ({user_id}, '{name}')"""
+    return set_query(sql_query=sql_query)
+
+
+def set_state_user(user_id: int) -> bool:
+    """
+    Добавление пользователя в таблицу state
+    :param user_id: id пользователя
+    :return: bool результат выполнения
+    """
+    sql_query = f"""INSERT INTO state (id, user_id, state)
+                    VALUES ({user_id}, {user_id}, 'none')"""
     return set_query(sql_query=sql_query)

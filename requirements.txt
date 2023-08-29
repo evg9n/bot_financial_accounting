@@ -1,4 +1,5 @@
 pyTelegramBotAPI
+telebot-calendar
 python-dotenv
 psycopg2
 aiohttp

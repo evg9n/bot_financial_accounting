@@ -6,7 +6,7 @@ BUTTONS_ADD_FINANCE = 'Создать'
 BUTTON_MAIN_MENU = 'Главное меню'
 BUTTONS_BACK = 'Назад'
 NOT_FINANCE = '(ПУСТО)'
-BUTTONS_MENU_FINANCE = ('Приход', 'Расход', 'Отчет', 'Назад', 'Главное меню', 'Удалить',)
+BUTTONS_MENU_FINANCE = ('Приход', 'Расход', 'Отчеты', 'Назад', 'Главное меню', 'Удалить',)
 
 
 def list_finance(user_id: int) -> ReplyKeyboardMarkup:
