@@ -1,15 +1,17 @@
 from re import sub
-from keyboards.inline.finance import categories_credit
+
+from keyboards.reply.report import report_menu
 from states.finance import *
 from typing import Optional
 from loader import bot
 from telebot.types import Message
 from keyboards.reply.basic import main_menu, main_menu_buttons
-from keyboards.reply.finance import list_finance, BUTTONS_ADD_FINANCE, NOT_FINANCE, BUTTON_MAIN_MENU, BUTTONS_BACK, \
+from keyboards.reply.finance import list_finance, BUTTONS_ADD_FINANCE, NOT_FINANCE, \
     create_finance, menu_finance, BUTTONS_MENU_FINANCE, main_menu_or_back
+from keyboards.reply.basic import BUTTON_MAIN_MENU, BUTTONS_BACK
+from states.report import TYPE_REPORT
 from work_database.get import get_names_finance, get_state, get_state_name_table
-from work_database.set import set_names_finance, set_state, set_state_name_table, set_state_sum_operation, \
-    set_state_message_id
+from work_database.set import set_names_finance, set_state, set_state_name_table
 
 
 @bot.message_handler(func=lambda message: get_state(user_id=message.from_user.id) == SELECT_FINANCE)
@@ -119,11 +121,16 @@ async def name_table_finance(message: Message):
     # Указать расход
     elif text == BUTTONS_MENU_FINANCE[1]:
         text = f'Введите сумму расхода:'
-        set_state(user_id=user_id, state=KREDIT_FINANCE)
+        set_state(user_id=user_id, state=CREDIT_FINANCE)
         await bot.send_message(chat_id=user_id, text=text, reply_markup=main_menu_or_back())
 
     # Отчеты
     elif text == BUTTONS_MENU_FINANCE[2]:
+        set_state(user_id=user_id, state=TYPE_REPORT)
+        await bot.send_message(chat_id=user_id, text='Какой вид отчета?', reply_markup=report_menu())
+
+    # Все операции
+    elif text == BUTTONS_MENU_FINANCE[3]:
         ...
 
 

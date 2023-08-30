@@ -1,1 +1,1 @@
-from . import kredit_or_debit
+from . import credit_or_debit

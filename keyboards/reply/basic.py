@@ -4,6 +4,8 @@ from work_database.get import get_names_finance
 
 main_menu_buttons = ('Мои финансы', )
 BUTTONS_ADD_FINANCE = 'Создать'
+BUTTON_MAIN_MENU = 'Главное меню'
+BUTTONS_BACK = 'Назад🔙'
 
 
 def main_menu() -> ReplyKeyboardMarkup:

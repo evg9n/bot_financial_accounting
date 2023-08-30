@@ -124,6 +124,7 @@ def create_table_state() -> bool:
                                 state VARCHAR(50) NOT NULL DEFAULT 'none',
                                 name_table VARCHAR(50) DEFAULT NULL,
                                 sum_operation NUMERIC(21, 2) DEFAULT 0.00,
+                                type_operation VARCHAR(6),
                                 finance_operations_id BIGINT DEFAULT NULL, 
                                 categories_operation VARCHAR(50),
                                 message_id BIGINT, 
@@ -143,6 +144,7 @@ def create_table_finance_operations() -> bool:
                                 user_id BIGINT REFERENCES users(user_id) ON DELETE CASCADE NOT NULL,
                                 name_table BIGINT REFERENCES names_finance(id) ON DELETE CASCADE NOT NULL,
                                 sum_operation NUMERIC(21, 2) NOT NULL,
+                                type_operation VARCHAR(6),
                                 categories_operation VARCHAR(50),
                                 name_operation VARCHAR(500),
                                 date DATE NOT NULL)"""

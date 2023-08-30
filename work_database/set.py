@@ -101,6 +101,18 @@ def set_state_name_table(user_id: int, name_table: str) -> bool:
     return set_query(sql_query=sql_query)
 
 
+def set_state_categore_operation(user_id: int, categore: str) -> bool:
+    """
+        Изменение в таблице состояние текущий финанс
+        :param user_id: id пользователя
+        :param categore: категория операции
+        :return: bool результат выполнения
+        """
+    sql_query = f"""UPDATE state set categories_operation = '{categore}'
+                        WHERE ID = {user_id}"""
+    return set_query(sql_query=sql_query)
+
+
 def set_state_sum_operation(user_id: int, sum_operation: float = None) -> bool:
     """
         Изменение в таблице состояние суммы операции
@@ -109,6 +121,18 @@ def set_state_sum_operation(user_id: int, sum_operation: float = None) -> bool:
         :return: bool результат выполнения
         """
     sql_query = f"""UPDATE state set sum_operation = {sum_operation}
+                        WHERE ID = {user_id}"""
+    return set_query(sql_query=sql_query)
+
+
+def set_state_type_operation(user_id: int, debit: bool = False) -> bool:
+    """
+        Изменение в таблице состояние типа операции
+        :param user_id: id пользователя
+        :param debit: Доход?
+        :return: bool результат выполнения
+        """
+    sql_query = f"""UPDATE state set type_operation = '{"доход" if debit else "расход"}'
                         WHERE ID = {user_id}"""
     return set_query(sql_query=sql_query)
 
@@ -186,4 +210,14 @@ def set_state_user(user_id: int) -> bool:
     """
     sql_query = f"""INSERT INTO state (id, user_id, state)
                     VALUES ({user_id}, {user_id}, 'none')"""
+    return set_query(sql_query=sql_query)
+
+
+def set_table_finance_operations(user_id: int, name_table: int, sum_operation: float, type_operation: str,
+                                 name_operation: str, date: datetime.date, categories_operation: str = None):
+    sql_query = f"""INSERT INTO finance_operations 
+                    (user_id, name_table, sum_operation, type_operation, categories_operation, name_operation, date)
+                    VALUES 
+                    ({user_id}, '{name_table}', {sum_operation}, '{type_operation}', '{categories_operation}', 
+                    '{name_operation}', '{date}')"""
     return set_query(sql_query=sql_query)

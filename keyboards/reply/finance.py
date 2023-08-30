@@ -1,12 +1,14 @@
 from telebot.types import ReplyKeyboardMarkup, ReplyKeyboardRemove, KeyboardButton
 from work_database.get import get_names_finance
+from keyboards.reply.basic import BUTTON_MAIN_MENU, BUTTONS_BACK
 
 
 BUTTONS_ADD_FINANCE = 'Создать'
-BUTTON_MAIN_MENU = 'Главное меню'
-BUTTONS_BACK = 'Назад'
 NOT_FINANCE = '(ПУСТО)'
-BUTTONS_MENU_FINANCE = ('Приход', 'Расход', 'Отчеты', 'Назад', 'Главное меню', 'Удалить',)
+BUTTONS_MENU_FINANCE = ('Приход⬆️', 'Расход⬇️',
+                        'Отчеты📊', 'Все операции',
+                        BUTTONS_BACK, BUTTON_MAIN_MENU,
+                        'Удалить финанс❌',)
 
 
 def list_finance(user_id: int) -> ReplyKeyboardMarkup:
@@ -33,7 +35,7 @@ def create_finance() -> ReplyKeyboardMarkup:
 
 
 def menu_finance() -> ReplyKeyboardMarkup:
-    markup = ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+    markup = ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
     buttons = [KeyboardButton(text) for text in BUTTONS_MENU_FINANCE]
     markup.add(*buttons)
     return markup

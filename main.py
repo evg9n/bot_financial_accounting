@@ -52,14 +52,20 @@ log_config = {
 config.dictConfig(log_config)
 log = getLogger()
 
-# DEFAULT_COMMANDS = (
-#     ('start', "Запустить бота"),
-#     ('menu', str(back_button[0])),
-#     ('help', "Вывести справку"),
-#     ('install', str(menu_button[1])),
-#     ('current_webhook', str(menu_button[2])),
-#     ('track', str(menu_button[0])),
-# )
+DEFAULT_COMMANDS = (
+    ('start', "Перузапустить бота"),
+    # ('menu', str(back_button[0])),
+    # ('help', "Вывести справку"),
+    # ('install', str(menu_button[1])),
+    # ('current_webhook', str(menu_button[2])),
+    # ('track', str(menu_button[0])),
+)
+
+
+async def set_commands():
+    await bot.set_my_commands(
+        [BotCommand(*i) for i in DEFAULT_COMMANDS]
+        )
 
 
 async def main():
@@ -76,6 +82,7 @@ if __name__ == '__main__':
             if create_table_names_finance():
                 if create_table_state():
                     if create_table_finance_operations():
+                        run(set_commands())
                         run(main())
                     else:
                         log.warning('Остановка из-за ошибки создании таблицы finance_operations')
