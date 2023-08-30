@@ -4,7 +4,6 @@ from loader import bot
 from telebot.types import CallbackQuery
 from keyboards.inline.finance import SELECT_DATE_BUTTON
 from work_database.set import set_state_date
-import telebot_calendar
 from telebot_calendar import CallbackData
 from work_database.get import get_state
 from states.finance import *
