@@ -1,0 +1,219 @@
+from pandas import DataFrame
+from io import BytesIO
+from matplotlib import pyplot as plt
+from re import sub
+from datetime import date, timedelta
+from loader import bot
+from telebot.types import CallbackQuery
+from keyboards.inline.report import SELECT_DATE_BUTTON_REPORT, select_date_report_inline
+from work_database.set import set_state_date, set_state
+from work_database.get import get_state, get_names_finance_id, get_for_all_report, \
+    get_state_name_table, get_state_date, get_for_debit_or_credit_report
+from utils.calendar import Calendar, LSTEP
+from states.report import *
+
+
+@bot.callback_query_handler(func=lambda call: (call.data.startswith('menu_data_report') and
+                                               get_state(user_id=call.from_user.id) in
+                                               (ALL_REPORT, CREDIT_REPORT, )))
+async def select_date_report(call: CallbackQuery):
+    text = sub(pattern='menu_data_report', repl='', string=call.data)
+    user_id = call.from_user.id
+    message_id = call.message.message_id
+
+    if text == SELECT_DATE_BUTTON_REPORT[0]:
+        today = date.today()
+        set_state_date(user_id=user_id, date=today)
+
+        await send_report(user_id=user_id, message_id=message_id)
+
+    elif text == SELECT_DATE_BUTTON_REPORT[1]:
+        yesterday = date.today() - timedelta(days=1)
+        set_state_date(user_id=user_id, date=yesterday)
+        await bot.edit_message_text(chat_id=user_id, text="Выбери до какого периода:", message_id=message_id,
+                                    reply_markup=select_date_report_inline(start=False))
+
+    elif text == SELECT_DATE_BUTTON_REPORT[2]:
+        calendar_inline, step = Calendar(calendar_id=1).build()
+        await bot.edit_message_text(chat_id=call.message.chat.id,
+                                    text=f'Выбери {LSTEP[step]}:',
+                                    reply_markup=calendar_inline,
+                                    message_id=call.message.id)
+
+
+@bot.callback_query_handler(func=lambda call: (call.data.startswith('menu_data2_report') and
+                                               get_state(user_id=call.from_user.id) in
+                                               (ALL_REPORT, CREDIT_REPORT, )))
+async def select_date2_report(call: CallbackQuery):
+    text = sub(pattern='menu_data2_report', repl='', string=call.data)
+    user_id = call.from_user.id
+    message_id = call.message.message_id
+
+    if text == SELECT_DATE_BUTTON_REPORT[0]:
+        today = date.today()
+        set_state_date(user_id=user_id, date=today, column_date2=True)
+        await send_report(user_id=user_id, message_id=message_id)
+
+    elif text == SELECT_DATE_BUTTON_REPORT[1]:
+        yesterday = date.today() - timedelta(days=1)
+        set_state_date(user_id=user_id, date=yesterday, column_date2=True)
+        await send_report(user_id=user_id, message_id=message_id)
+
+    elif text == SELECT_DATE_BUTTON_REPORT[2]:
+        calendar_inline, step = Calendar(calendar_id=2).build()
+        await bot.edit_message_text(chat_id=call.message.chat.id,
+                                    text=f'Выбери {LSTEP[step]}:',
+                                    reply_markup=calendar_inline,
+                                    message_id=message_id)
+
+
+@bot.callback_query_handler(func=lambda call: (Calendar.func(calendar_id=1) and
+                                               get_state(user_id=call.from_user.id) in
+                                               (ALL_REPORT, CREDIT_REPORT, )))
+async def calendar_1(call: CallbackQuery):
+    result, key, step = Calendar(calendar_id=1).process(call_data=call.data)
+    user_id = call.from_user.id
+    message_id = call.message.message_id
+
+    if not result and key:
+        await bot.edit_message_text(text=f"Выбери {LSTEP[step]}:",
+                                    chat_id=user_id,
+                                    message_id=message_id,
+                                    reply_markup=key)
+    elif result:
+        set_state_date(user_id=user_id, date=result)
+        await bot.edit_message_text(chat_id=user_id, text="Выбери до какого периода:", message_id=message_id,
+                                    reply_markup=select_date_report_inline(start=False))
+
+
+@bot.callback_query_handler(func=lambda call: (Calendar.func(calendar_id=2) and
+                                               get_state(user_id=call.from_user.id) in
+                                               (ALL_REPORT, CREDIT_REPORT, )))
+async def calendar_2(call: CallbackQuery):
+    result, key, step = Calendar(calendar_id=2).process(call_data=call.data)
+    user_id = call.from_user.id
+    message_id = call.message.message_id
+
+    if not result and key:
+        await bot.edit_message_text(text=f"Выбери {LSTEP[step]}:",
+                                    chat_id=user_id,
+                                    message_id=message_id,
+                                    reply_markup=key)
+    elif result:
+        set_state_date(user_id=user_id, date=result, column_date2=True)
+        await send_report(user_id=user_id, message_id=message_id)
+
+
+async def send_report(user_id: int, message_id: int):
+    state = get_state(user_id=user_id)
+    set_state(user_id=user_id, state=TYPE_REPORT)
+    if state == ALL_REPORT:
+        buf, sum_debit, sum_credit = report_all(user_id=user_id)
+        if buf is None:
+            await bot.send_message(chat_id=user_id, message_id=message_id, text='Нет данных')
+        else:
+            text = (f'Расход: {sum_credit}\n'
+                    f'Доход: {sum_debit}\n'
+                    f'Прибыль: {sum_debit + sum_credit}')
+            await bot.delete_message(chat_id=user_id, message_id=message_id)
+            await bot.send_photo(chat_id=user_id, photo=buf, caption=text)
+
+    elif state == CREDIT_REPORT:
+        buf, dict_sum = debit_report(user_id=user_id)
+        if buf is None:
+            await bot.edit_message_text(chat_id=user_id, text='Нет данных', message_id=message_id)
+        else:
+            text = str()
+            s = 0.0
+            for key, value in dict_sum.items():
+                text += f"{key}: {value}\n"
+                s += value
+            else:
+                text += f"Всего: {s}"
+
+            await bot.delete_message(message_id=message_id, chat_id=user_id)
+            await bot.send_photo(chat_id=user_id, photo=buf, caption=text)
+
+
+def report_all(user_id: int):
+    name_table = get_state_name_table(user_id=user_id)
+    id_name_table = get_names_finance_id(user_id=user_id, name=name_table)
+    date_1 = get_state_date(user_id=user_id)
+    date_2 = get_state_date(user_id=user_id, column_date2=True)
+    list_finances_operations = get_for_all_report(user_id=user_id, name_table=id_name_table,
+                                                  date_1=date_1, date_2=date_2)
+    if list_finances_operations:
+        columns = ['сумма', 'доход/расход']
+
+        df = DataFrame(list_finances_operations, columns=columns)
+        df['сумма'] = df['сумма'].astype(float)
+
+        def make_autopct(values):
+            def my_autopct(pct):
+                total = sum(values)
+                val = float(round(pct * total / 100.0, 2))
+                return f'{val}({round(pct, 2)}%)'
+
+            return my_autopct
+
+        categories = df['доход/расход'].unique()
+        sum_credit = float(df.loc[df['доход/расход'] == 'расход', 'сумма'].sum())
+        sum_debit = float(df.loc[df['доход/расход'] == 'доход', 'сумма'].sum())
+        list_sum = [round(sum_debit, 2), round(sum_credit, 2)]
+        exp = (0.1, 0.1)
+        plt.pie(x=[sum_debit, sum_credit], labels=categories, autopct=make_autopct(list_sum),
+                colors=['green', 'red'], explode=exp, textprops=dict(fontsize=8))
+        plt.title(f'Прибыль: {sum_debit - sum_credit}')
+        buf = BytesIO()
+        plt.savefig(buf, format='png')
+        plt.close()
+        buf.seek(0)
+        return buf, sum_debit, sum_credit
+
+    else:
+        return None, None, None
+
+
+def debit_report(user_id: int):
+    name_table = get_state_name_table(user_id=user_id)
+    id_name_table = get_names_finance_id(user_id=user_id, name=name_table)
+    date_1 = get_state_date(user_id=user_id)
+    date_2 = get_state_date(user_id=user_id, column_date2=True)
+    list_finances_operations = get_for_debit_or_credit_report(user_id=user_id, name_table=id_name_table,
+                                                              date_1=date_1, date_2=date_2, credit=True)
+
+    if list_finances_operations:
+
+        columns = ['сумма', 'категория']
+
+        df = DataFrame(list_finances_operations, columns=columns)
+        df['сумма'] = df['сумма'].astype(float)
+
+        def make_autopct(values):
+            def my_autopct(pct):
+                total = sum(values)
+                val = float(round(pct * total / 100.0, 2))
+                return f'{val}({round(pct, 2)}%)'
+
+            return my_autopct
+
+        categories = df['категория'].unique()
+        dict_sum = dict()
+        list_sum = list()
+        for categore in categories:
+            s = round(float(df.loc[df['категория'] == categore, 'сумма'].sum()), 2)
+            dict_sum[categore] = s
+            list_sum.append(s)
+
+        plt.pie(x=list_sum, labels=categories, autopct=make_autopct(df['сумма']),
+                textprops=dict(fontsize=8))
+        plt.title(f'Общий рассход: {sum(list_sum)}')
+        buf = BytesIO()
+        plt.savefig(buf, format='png')
+        plt.close()
+        buf.seek(0)
+
+        return buf, dict_sum
+
+    else:
+        return None, None

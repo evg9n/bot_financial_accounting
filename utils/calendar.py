@@ -24,8 +24,9 @@ class Calendar(DetailedTelegramCalendar):
                "июль", "август", "сентябрь", "октябрь", "ноябрь", "декабрь"],
     }
 
-    def __init__(self):
+    def __init__(self, calendar_id=0):
         locale = 'ru'
         max_day = date.today()
         min_date = date(year=max_day.year, month=1, day=1)
-        super(DetailedTelegramCalendar, self).__init__(locale=locale, min_date=min_date, max_date=max_day)
+        super(DetailedTelegramCalendar, self).__init__(calendar_id=calendar_id, locale=locale,
+                                                       min_date=min_date, max_date=max_day)

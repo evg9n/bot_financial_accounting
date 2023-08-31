@@ -1,3 +1,4 @@
+import datetime
 from typing import Optional, Union
 
 from loader import environ
@@ -141,9 +142,33 @@ def get_state_type_operation(user_id) -> Optional[str]:
     return result[0][0] if result else None
 
 
-def get_all_report(user_id: int, name_table: int):
-    sql_query = (f'SELECT sum_operation, type_operation FROM finance_operations '
-                 f'WHERE user_id = {user_id} AND name_table = {name_table}')
+def get_state_date(user_id: int, column_date2: bool = False) -> Optional[datetime.date]:
+    """
+    Получение текущего даты из состояния
+    :param user_id: id пользователя
+    :param column_date2: Вторую дату?
+    :return: текущая дата из состояния
+    """
+    sql_query = f"""SELECT {'date2' if column_date2 else 'date'} FROM state WHERE id = {user_id} LIMIT 1"""
+    result = get_query(sql_query=sql_query)
+    return result[0][0] if result else None
+
+
+def get_for_all_report(user_id: int, name_table: int, date_1: datetime.date, date_2: datetime.date):
+    sql_query = (f"""SELECT sum_operation, type_operation FROM finance_operations 
+                    WHERE user_id = {user_id} AND name_table = {name_table} 
+                    AND '{date_1}' <= date 
+                    AND date <= '{date_2}'""")
+    return get_query(sql_query=sql_query)
+
+
+def get_for_debit_or_credit_report(user_id: int, name_table: int, date_1: datetime.date, date_2: datetime.date,
+                                   credit: bool = False):
+    sql_query = (f"""SELECT sum_operation, categories_operation FROM finance_operations 
+                    WHERE user_id = {user_id} AND name_table = {name_table} 
+                    AND type_operation = '{"расход" if credit else "доход"}'
+                    AND '{date_1}' <= date 
+                    AND date <= '{date_2}'""")
     return get_query(sql_query=sql_query)
 
 
