@@ -69,9 +69,9 @@ async def set_commands():
 
 
 async def main():
-    # bot.set_my_commands(
-    #     [BotCommand(*i) for i in DEFAULT_COMMANDS]
-    # )
+    await bot.set_my_commands(
+        [BotCommand(*i) for i in DEFAULT_COMMANDS]
+    )
     bot.add_custom_filter(StateFilter(bot))
     await gather(bot.infinity_polling())
 
@@ -82,7 +82,7 @@ if __name__ == '__main__':
             if create_table_names_finance():
                 if create_table_state():
                     if create_table_finance_operations():
-                        run(set_commands())
+                        # run(set_commands())
                         run(main())
                     else:
                         log.warning('Остановка из-за ошибки создании таблицы finance_operations')

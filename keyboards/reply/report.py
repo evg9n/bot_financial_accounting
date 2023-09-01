@@ -6,6 +6,7 @@ BUTTONS_REPORT_MENU = ('Общий отчет', 'Отчет по расхода�
 
 
 def report_menu() -> ReplyKeyboardMarkup:
+    """Меню отчета"""
     markup = ReplyKeyboardMarkup(row_width=1)
     buttons = [KeyboardButton(text=text) for text in BUTTONS_REPORT_MENU]
     markup.add(*buttons)

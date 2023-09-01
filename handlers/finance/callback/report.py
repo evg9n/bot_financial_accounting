@@ -17,6 +17,7 @@ from states.report import *
                                                get_state(user_id=call.from_user.id) in
                                                (ALL_REPORT, CREDIT_REPORT, )))
 async def select_date_report(call: CallbackQuery):
+    """Обработка клавиатуры выбора даты ОТ"""
     text = sub(pattern='menu_data_report', repl='', string=call.data)
     user_id = call.from_user.id
     message_id = call.message.message_id
@@ -36,7 +37,7 @@ async def select_date_report(call: CallbackQuery):
     elif text == SELECT_DATE_BUTTON_REPORT[2]:
         calendar_inline, step = Calendar(calendar_id=1).build()
         await bot.edit_message_text(chat_id=call.message.chat.id,
-                                    text=f'Выбери {LSTEP[step]}:',
+                                    text=f'Выбери с какого месяца {LSTEP[step]}:',
                                     reply_markup=calendar_inline,
                                     message_id=call.message.id)
 
@@ -45,6 +46,7 @@ async def select_date_report(call: CallbackQuery):
                                                get_state(user_id=call.from_user.id) in
                                                (ALL_REPORT, CREDIT_REPORT, )))
 async def select_date2_report(call: CallbackQuery):
+    """Обработка клавиатуры выбора даты ДО"""
     text = sub(pattern='menu_data2_report', repl='', string=call.data)
     user_id = call.from_user.id
     message_id = call.message.message_id
@@ -60,23 +62,28 @@ async def select_date2_report(call: CallbackQuery):
         await send_report(user_id=user_id, message_id=message_id)
 
     elif text == SELECT_DATE_BUTTON_REPORT[2]:
-        calendar_inline, step = Calendar(calendar_id=2).build()
-        await bot.edit_message_text(chat_id=call.message.chat.id,
-                                    text=f'Выбери {LSTEP[step]}:',
+        min_date = get_state_date(user_id=user_id)
+        calendar_inline, step = Calendar(calendar_id=2, min_date=min_date).build()
+        await bot.delete_message(chat_id=call.message.chat.id,
+                                 message_id=message_id)
+        await bot.send_message(chat_id=call.message.chat.id,
+                                    text=f'Выбери до какого месяца {LSTEP[step]}:',
                                     reply_markup=calendar_inline,
-                                    message_id=message_id)
+                                    # message_id=message_id
+                               )
 
 
-@bot.callback_query_handler(func=lambda call: (Calendar.func(calendar_id=1) and
+@bot.callback_query_handler(func=lambda call: (call.data.startswith('cbcal_1') and
                                                get_state(user_id=call.from_user.id) in
                                                (ALL_REPORT, CREDIT_REPORT, )))
 async def calendar_1(call: CallbackQuery):
+    """Обработка календаря ОТ"""
     result, key, step = Calendar(calendar_id=1).process(call_data=call.data)
     user_id = call.from_user.id
     message_id = call.message.message_id
 
     if not result and key:
-        await bot.edit_message_text(text=f"Выбери {LSTEP[step]}:",
+        await bot.edit_message_text(text=f"Выбери с какого числа {LSTEP[step]}:",
                                     chat_id=user_id,
                                     message_id=message_id,
                                     reply_markup=key)
@@ -86,16 +93,18 @@ async def calendar_1(call: CallbackQuery):
                                     reply_markup=select_date_report_inline(start=False))
 
 
-@bot.callback_query_handler(func=lambda call: (Calendar.func(calendar_id=2) and
+@bot.callback_query_handler(func=lambda call: (call.data.startswith('cbcal_2') and
                                                get_state(user_id=call.from_user.id) in
                                                (ALL_REPORT, CREDIT_REPORT, )))
 async def calendar_2(call: CallbackQuery):
-    result, key, step = Calendar(calendar_id=2).process(call_data=call.data)
+    """Обработка календаря ДО"""
     user_id = call.from_user.id
     message_id = call.message.message_id
+    min_date = get_state_date(user_id=user_id)
+    result, key, step = Calendar(calendar_id=2, min_date=min_date).process(call_data=call.data)
 
     if not result and key:
-        await bot.edit_message_text(text=f"Выбери {LSTEP[step]}:",
+        await bot.edit_message_text(text=f"Выбери до какого числа {LSTEP[step]}:",
                                     chat_id=user_id,
                                     message_id=message_id,
                                     reply_markup=key)
@@ -105,6 +114,7 @@ async def calendar_2(call: CallbackQuery):
 
 
 async def send_report(user_id: int, message_id: int):
+    """Отправка отчета"""
     state = get_state(user_id=user_id)
     set_state(user_id=user_id, state=TYPE_REPORT)
     if state == ALL_REPORT:
@@ -136,6 +146,7 @@ async def send_report(user_id: int, message_id: int):
 
 
 def report_all(user_id: int):
+    """Общий отчет"""
     name_table = get_state_name_table(user_id=user_id)
     id_name_table = get_names_finance_id(user_id=user_id, name=name_table)
     date_1 = get_state_date(user_id=user_id)
@@ -147,14 +158,6 @@ def report_all(user_id: int):
 
         df = DataFrame(list_finances_operations, columns=columns)
         df['сумма'] = df['сумма'].astype(float)
-
-        def make_autopct(values):
-            def my_autopct(pct):
-                total = sum(values)
-                val = float(round(pct * total / 100.0, 2))
-                return f'{val}({round(pct, 2)}%)'
-
-            return my_autopct
 
         categories = df['доход/расход'].unique()
         sum_credit = float(df.loc[df['доход/расход'] == 'расход', 'сумма'].sum())
@@ -175,6 +178,7 @@ def report_all(user_id: int):
 
 
 def debit_report(user_id: int):
+    """Отчет по расходам"""
     name_table = get_state_name_table(user_id=user_id)
     id_name_table = get_names_finance_id(user_id=user_id, name=name_table)
     date_1 = get_state_date(user_id=user_id)
@@ -188,14 +192,6 @@ def debit_report(user_id: int):
 
         df = DataFrame(list_finances_operations, columns=columns)
         df['сумма'] = df['сумма'].astype(float)
-
-        def make_autopct(values):
-            def my_autopct(pct):
-                total = sum(values)
-                val = float(round(pct * total / 100.0, 2))
-                return f'{val}({round(pct, 2)}%)'
-
-            return my_autopct
 
         categories = df['категория'].unique()
         dict_sum = dict()
@@ -217,3 +213,13 @@ def debit_report(user_id: int):
 
     else:
         return None, None
+
+
+def make_autopct(values):
+    """Вывод суммы на диаграмму"""
+    def my_autopct(pct):
+        total = sum(values)
+        val = float(round(pct * total / 100.0, 2))
+        return f'{val}({round(pct, 2)}%)'
+
+    return my_autopct

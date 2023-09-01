@@ -1,5 +1,4 @@
 from datetime import date
-
 from telegram_bot_calendar import DetailedTelegramCalendar
 
 YEAR = 'y'
@@ -24,9 +23,10 @@ class Calendar(DetailedTelegramCalendar):
                "июль", "август", "сентябрь", "октябрь", "ноябрь", "декабрь"],
     }
 
-    def __init__(self, calendar_id=0):
+    def __init__(self, calendar_id=0, min_date=None):
         locale = 'ru'
         max_day = date.today()
-        min_date = date(year=max_day.year, month=1, day=1)
+        if min_date is None:
+            min_date = date(year=max_day.year, month=1, day=1)
         super(DetailedTelegramCalendar, self).__init__(calendar_id=calendar_id, locale=locale,
                                                        min_date=min_date, max_date=max_day)
