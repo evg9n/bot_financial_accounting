@@ -9,7 +9,7 @@ from traceback import format_exc
 
 log = getLogger('set_database')
 
-USER = environ.get('USER')
+USER = environ.get('USERNAME')
 NAME_DATABASE = environ.get('NAME_DATABASE')
 PASSWORD = environ.get('PASSWORD')
 HOST = environ.get('HOST')
