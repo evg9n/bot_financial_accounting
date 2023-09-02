@@ -126,7 +126,7 @@ async def send_report(user_id: int, message_id: int):
         else:
             text = (f'Расход: {sum_credit}\n'
                     f'Доход: {sum_debit}\n'
-                    f'Прибыль: {sum_debit + sum_credit}')
+                    f'Прибыль: {sum_debit - sum_credit}')
             await bot.delete_message(chat_id=user_id, message_id=message_id)
             await bot.send_photo(chat_id=user_id, photo=buf, caption=text)
 
