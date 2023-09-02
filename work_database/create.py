@@ -7,7 +7,7 @@ from traceback import format_exc
 
 log = getLogger('create_database')
 
-USER = environ.get('USERNAME')
+USER = environ.get('USER_NAME')
 NAME_DATABASE = environ.get('NAME_DATABASE')
 PASSWORD = environ.get('PASSWORD')
 HOST = environ.get('HOST')
