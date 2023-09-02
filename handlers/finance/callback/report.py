@@ -117,6 +117,8 @@ async def send_report(user_id: int, message_id: int):
     """Отправка отчета"""
     state = get_state(user_id=user_id)
     set_state(user_id=user_id, state=TYPE_REPORT)
+
+    # Общий отчет
     if state == ALL_REPORT:
         buf, sum_debit, sum_credit = report_all(user_id=user_id)
         if buf is None:
@@ -128,6 +130,7 @@ async def send_report(user_id: int, message_id: int):
             await bot.delete_message(chat_id=user_id, message_id=message_id)
             await bot.send_photo(chat_id=user_id, photo=buf, caption=text)
 
+    # Отчет по расходам
     elif state == CREDIT_REPORT:
         buf, dict_sum = debit_report(user_id=user_id)
         if buf is None:
