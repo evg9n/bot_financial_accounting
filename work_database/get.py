@@ -155,6 +155,7 @@ def get_state_date(user_id: int, column_date2: bool = False) -> Optional[datetim
 
 
 def get_for_all_report(user_id: int, name_table: int, date_1: datetime.date, date_2: datetime.date):
+    """Получение всех операций с полями sum_operation и type_operation"""
     sql_query = (f"""SELECT sum_operation, type_operation FROM finance_operations 
                     WHERE user_id = {user_id} AND name_table = {name_table} 
                     AND '{date_1}' <= date 
@@ -164,11 +165,20 @@ def get_for_all_report(user_id: int, name_table: int, date_1: datetime.date, dat
 
 def get_for_debit_or_credit_report(user_id: int, name_table: int, date_1: datetime.date, date_2: datetime.date,
                                    credit: bool = False):
+    """Получение операций расхода или дохода по периоду"""
     sql_query = (f"""SELECT sum_operation, categories_operation FROM finance_operations 
                     WHERE user_id = {user_id} AND name_table = {name_table} 
                     AND type_operation = '{"расход" if credit else "доход"}'
                     AND '{date_1}' <= date 
                     AND date <= '{date_2}'""")
+    return get_query(sql_query=sql_query)
+
+
+def get_all_operations(user_id: int, name_table: int, date_1: datetime.date, date_2: datetime.date):
+    """получение всех операций со всеми полями по периоду"""
+    sql_query = (f"""SELECT * FROM finance_operations 
+                        WHERE user_id = {user_id} AND name_table = {name_table} AND
+                        '{date_1}' <= date AND date <= '{date_2}'""")
     return get_query(sql_query=sql_query)
 
 

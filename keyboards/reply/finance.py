@@ -9,6 +9,7 @@ BUTTONS_MENU_FINANCE = ('Приход⬆️', 'Расход⬇️',
                         'Отчеты📊', 'Все операции',
                         BUTTONS_BACK, BUTTON_MAIN_MENU,
                         'Удалить финанс❌',)
+BUTTONS_YES_OR_NO = ('Конечно', 'Ой, нет', )
 
 
 def list_finance(user_id: int) -> ReplyKeyboardMarkup:
@@ -45,4 +46,11 @@ def main_menu_or_back() -> ReplyKeyboardMarkup:
     markup = ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
     buttons = [KeyboardButton(text) for text in (BUTTONS_BACK, BUTTON_MAIN_MENU)]
     markup.add(*buttons)
+    return markup
+
+
+def yes_or_no() -> ReplyKeyboardMarkup:
+    markup = ReplyKeyboardMarkup(row_width=2)
+    buttins = [KeyboardButton(text=text) for text in BUTTONS_YES_OR_NO]
+    markup.add(*buttins)
     return markup

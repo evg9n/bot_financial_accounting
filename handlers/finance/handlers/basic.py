@@ -1,13 +1,13 @@
 from re import sub
+from typing import Optional
+from telebot.types import Message
 
 from keyboards.reply.report import report_menu
 from states.finance import *
-from typing import Optional
 from loader import bot
-from telebot.types import Message
 from keyboards.reply.basic import main_menu, main_menu_buttons
 from keyboards.reply.finance import list_finance, BUTTONS_ADD_FINANCE, NOT_FINANCE, \
-    create_finance, menu_finance, BUTTONS_MENU_FINANCE, main_menu_or_back
+    create_finance, menu_finance, BUTTONS_MENU_FINANCE, main_menu_or_back, yes_or_no, BUTTONS_YES_OR_NO
 from keyboards.reply.basic import BUTTON_MAIN_MENU, BUTTONS_BACK
 from states.report import TYPE_REPORT
 from work_database.get import get_names_finance, get_state, get_state_name_table
@@ -96,11 +96,8 @@ async def name_table_finance(message: Message):
 
     # Удалить финанс
     if text == BUTTONS_MENU_FINANCE[-1]:
-        current_name_table = get_state_name_table(user_id=user_id)
-        if current_name_table is not None:
-            set_names_finance(user_id=user_id, name=current_name_table, delete=True)
-        set_state(user_id=user_id, state=SELECT_FINANCE)
-        await bot.send_message(chat_id=user_id, text=text, reply_markup=list_finance(user_id=user_id))
+        set_state(user_id=user_id, state=DELETE_FINANCE)
+        await bot.send_message(chat_id=user_id, text="Точно удалять? 🫣", reply_markup=yes_or_no())
 
     # Перейти в главное меню
     elif text == BUTTONS_MENU_FINANCE[-2]:
@@ -132,6 +129,25 @@ async def name_table_finance(message: Message):
     # Все операции
     elif text == BUTTONS_MENU_FINANCE[3]:
         ...
+
+
+@bot.message_handler(func=lambda message: get_state(user_id=message.from_user.id) == DELETE_FINANCE)
+async def delete_name_table(message: Message):
+    text = message.text
+    user_id = message.from_user.id
+
+    if BUTTONS_YES_OR_NO[0] == text:
+        current_name_table = get_state_name_table(user_id=user_id)
+        if current_name_table is not None:
+            set_names_finance(user_id=user_id, name=current_name_table, delete=True)
+        set_state(user_id=user_id, state=SELECT_FINANCE)
+        await bot.send_message(chat_id=user_id, text=f'"{current_name_table}" удалена 😔',
+                               reply_markup=list_finance(user_id=user_id))
+
+    elif BUTTONS_YES_OR_NO[1] == text:
+        set_state(user_id=user_id, state=NAME_TABLE_FINANCE)
+        await bot.send_message(chat_id=user_id, text=f'Правильно 😁',
+                               reply_markup=menu_finance())
 
 
 def check_sum(number: str) -> Optional[float]:

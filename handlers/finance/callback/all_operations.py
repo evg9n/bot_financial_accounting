@@ -6,7 +6,7 @@ from datetime import date, timedelta
 
 from states.finance import NAME_TABLE_FINANCE
 from utils.plug import plug
-from work_database.get import get_state, get_state_date
+from work_database.get import get_state, get_state_date, get_all_operations, get_state_name_table, get_names_finance_id
 from work_database.set import set_state_date
 from utils.calendar import Calendar, LSTEP
 
@@ -29,13 +29,14 @@ async def select_period_operation(call: CallbackQuery):
         yesterday = date.today() - timedelta(days=1)
         set_state_date(user_id=user_id, date=yesterday)
         await bot.edit_message_text(chat_id=user_id, text='Выбери окончание периода:', message_id=message_id,
-                              reply_markup=select_period(start=False, button_manually=False, button_month=False))
+                                    reply_markup=select_period(start=False, button_manually=False, button_month=False))
 
     elif text == BUTTONS_SELECT_PERIOD[2]:
         today = date.today()
         start_month = today - timedelta(days=today.day)
         set_state_date(user_id=user_id, date=start_month)
         set_state_date(user_id=user_id, date=today, column_date2=True)
+        # save_all_operation(user_id=user_id, chat_id=call.message.chat.id)
         await plug(user_id=user_id, message_id=message_id, edit=True)
 
     elif text == BUTTONS_SELECT_PERIOD[3]:
@@ -84,7 +85,7 @@ async def select_period_operation(call: CallbackQuery):
 
     # elif text == BUTTONS_SELECT_PERIOD[2]:
     #     today = date.today()
-    #     start_month = today - timedelta(days=today.day)
+    #     start_month = today - timedelta(days=today.day - 1)
 
     elif text == BUTTONS_SELECT_PERIOD[3]:
         calendar_inline, step = Calendar(calendar_id=2).build()
@@ -109,3 +110,30 @@ async def calendar_2(call: CallbackQuery):
     elif result:
         set_state_date(user_id=user_id, date=result, column_date2=True)
         await plug(user_id=user_id, message_id=message_id, edit=True)
+
+
+def save_all_operation(user_id: int, chat_id: int):
+    """[(1, 1158909236, 1, Decimal('464646.46'), 'доход', 'None', 'пвапва', datetime.date(2023, 8, 31)),
+     (5, 1158909236, 1, Decimal('7484.40'), 'расход', 'Развитие', 'fdsfsdf', datetime.date(2023, 8, 31)),
+     (6, 1158909236, 1, Decimal('14564.00'), 'расход', 'Развитие', 'Создать', datetime.date(2023, 9, 1)),
+     (7, 1158909236, 1, Decimal('34234.00'), 'расход', 'ЖКХ/Аренда', 'gdfg', datetime.date(2023, 9, 7))]"""
+    name_table = get_state_name_table(user_id=user_id)
+    name_table = get_names_finance_id(user_id=user_id, name=name_table)
+    date_1 = get_state_date(user_id=user_id)
+    date_2 = get_state_date(user_id=user_id, column_date2=True)
+
+    list_operations = get_all_operations(user_id=user_id, name_table=name_table, date_1=date_1, date_2=date_2)
+    print(list_operations)
+    dict_operations = dict()
+    step = 2
+    first = 0
+    number = 1
+    for _ in list_operations[::5]:
+        print('fdsssssssssssssssssssssssssssssssss')
+        dict_operations[number] = list_operations[first:first + step]
+        first += step
+        number += 1
+
+    print(111111, dict_operations)
+    with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as operations:
+        ...

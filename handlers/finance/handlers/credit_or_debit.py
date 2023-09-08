@@ -1,4 +1,5 @@
 from telebot.types import Message
+
 from handlers.finance.handlers.basic import check_sum
 from keyboards.inline.finance import categories_credit, select_date
 from keyboards.reply.basic import main_menu
@@ -10,6 +11,7 @@ from states.finance import DEBIT_FINANCE, CREDIT_FINANCE, NAME_TABLE_FINANCE, DA
 from work_database.get import get_state, get_names_finance_id, get_state_type_operation
 from work_database.set import (set_state, set_state_sum_operation, set_state_message_id,
                                set_state_categories_operation, set_table_finance_operations, set_state_type_operation)
+from utils.texts_messages import TEXT_MAIN_MENU, TEXT_INPUT_SUM
 
 
 @bot.message_handler(func=lambda message: get_state(user_id=message.from_user.id) in (DEBIT_FINANCE, CREDIT_FINANCE))
@@ -60,10 +62,10 @@ async def name_finance(message: Message):
 
     if text == BUTTON_MAIN_MENU:
         set_state(user_id=user_id)
-        await bot.send_message(chat_id=user_id, text="Главное меню", reply_markup=main_menu())
+        await bot.send_message(chat_id=user_id, text=TEXT_MAIN_MENU, reply_markup=main_menu())
     elif text == BUTTONS_BACK:
         set_state(user_id=user_id, state=DATE_FINANCE)
-        await bot.send_message(chat_id=user_id, text='Введи сумму:', reply_markup=select_date())
+        await bot.send_message(chat_id=user_id, text=TEXT_INPUT_SUM, reply_markup=select_date())
     else:
         result = get_state(user_id=user_id, get_all=True)
         id_finance = get_names_finance_id(user_id=user_id, name=result[3])
@@ -82,7 +84,7 @@ async def other(message: Message):
 
     if text == BUTTON_MAIN_MENU:
         set_state(user_id=user_id)
-        await bot.send_message(chat_id=user_id, text="Главное меню", reply_markup=main_menu())
+        await bot.send_message(chat_id=user_id, text=TEXT_MAIN_MENU, reply_markup=main_menu())
     elif text == BUTTONS_BACK:
         current_state = get_state(user_id=user_id)
 
@@ -92,7 +94,7 @@ async def other(message: Message):
             else:
                 type_operation = get_state_type_operation(user_id=user_id)
                 set_state(user_id=user_id, state=DEBIT_FINANCE if type_operation == 'доход' else CREDIT_FINANCE)
-            await bot.send_message(chat_id=user_id, text='Введи сумму:')
+            await bot.send_message(chat_id=user_id, text=TEXT_INPUT_SUM)
         elif NAME_FINANCE == current_state:
             set_state(user_id=user_id, state=DATE_FINANCE)
-            await bot.send_message(chat_id=user_id, text='Введи сумму:', reply_markup=select_date())
+            await bot.send_message(chat_id=user_id, text=TEXT_INPUT_SUM, reply_markup=select_date())

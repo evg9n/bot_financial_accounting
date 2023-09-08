@@ -3,9 +3,11 @@ from io import BytesIO
 from matplotlib import pyplot as plt
 from re import sub
 from datetime import date, timedelta
-from loader import bot
 from telebot.types import CallbackQuery
+
+from loader import bot
 from keyboards.inline.report import SELECT_DATE_BUTTON_REPORT, select_date_report_inline
+from utils.other import update_date
 from work_database.set import set_state_date, set_state
 from work_database.get import get_state, get_names_finance_id, get_for_all_report, \
     get_state_name_table, get_state_date, get_for_debit_or_credit_report
@@ -25,7 +27,7 @@ async def select_date_report(call: CallbackQuery):
     if text == SELECT_DATE_BUTTON_REPORT[0]:
         today = date.today()
         set_state_date(user_id=user_id, date=today)
-
+        set_state_date(user_id=user_id, date=today, column_date2=True)
         await send_report(user_id=user_id, message_id=message_id)
 
     elif text == SELECT_DATE_BUTTON_REPORT[1]:
@@ -35,6 +37,13 @@ async def select_date_report(call: CallbackQuery):
                                     reply_markup=select_date_report_inline(start=False))
 
     elif text == SELECT_DATE_BUTTON_REPORT[2]:
+        today = date.today()
+        start_month = today - timedelta(days=today.day - 1)
+        set_state_date(user_id=user_id, date=start_month)
+        set_state_date(user_id=user_id, date=today, column_date2=True)
+        await send_report(user_id=user_id, message_id=message_id)
+
+    elif text == SELECT_DATE_BUTTON_REPORT[3]:
         calendar_inline, step = Calendar(calendar_id=1).build()
         await bot.edit_message_text(chat_id=call.message.chat.id,
                                     text=f'Выбери с какого месяца {LSTEP[step]}:',
@@ -122,11 +131,12 @@ async def send_report(user_id: int, message_id: int):
     if state == ALL_REPORT:
         buf, sum_debit, sum_credit = report_all(user_id=user_id)
         if buf is None:
-            await bot.send_message(chat_id=user_id, message_id=message_id, text='Нет данных')
+            await bot.delete_message(chat_id=user_id, message_id=message_id)
+            await bot.send_message(chat_id=user_id, text='Нет данных')
         else:
             text = (f'Расход: {sum_credit}\n'
                     f'Доход: {sum_debit}\n'
-                    f'Прибыль: {sum_debit - sum_credit}')
+                    f'Прибыль: {round(sum_debit - sum_credit, 2)}')
             await bot.delete_message(chat_id=user_id, message_id=message_id)
             await bot.send_photo(chat_id=user_id, photo=buf, caption=text)
 
@@ -142,7 +152,7 @@ async def send_report(user_id: int, message_id: int):
                 text += f"{key}: {value}\n"
                 s += value
             else:
-                text += f"Всего: {s}"
+                text += f"Всего: {round(s, 2)}"
 
             await bot.delete_message(message_id=message_id, chat_id=user_id)
             await bot.send_photo(chat_id=user_id, photo=buf, caption=text)
@@ -156,20 +166,24 @@ def report_all(user_id: int):
     date_2 = get_state_date(user_id=user_id, column_date2=True)
     list_finances_operations = get_for_all_report(user_id=user_id, name_table=id_name_table,
                                                   date_1=date_1, date_2=date_2)
+    date_1 = update_date(date_1)
+    date_2 = update_date(date_2)
+
     if list_finances_operations:
         columns = ['сумма', 'доход/расход']
 
         df = DataFrame(list_finances_operations, columns=columns)
         df['сумма'] = df['сумма'].astype(float)
 
-        categories = df['доход/расход'].unique()
+        # categories = df['доход/расход'].unique()
         sum_credit = float(df.loc[df['доход/расход'] == 'расход', 'сумма'].sum())
         sum_debit = float(df.loc[df['доход/расход'] == 'доход', 'сумма'].sum())
         list_sum = [round(sum_debit, 2), round(sum_credit, 2)]
         exp = (0.1, 0.1)
-        plt.pie(x=[sum_debit, sum_credit], labels=categories, autopct=make_autopct(list_sum),
+        plt.pie(x=[sum_debit, sum_credit], labels=['доход', 'расход'], autopct=make_autopct(list_sum),
                 colors=['green', 'red'], explode=exp, textprops=dict(fontsize=8))
-        plt.title(f'Прибыль: {sum_debit - sum_credit}')
+        plt.title(f'Прибыль: {round(sum_debit - sum_credit, 2)}\n'
+                  f'Период: {date_1} - {date_2}')
         buf = BytesIO()
         plt.savefig(buf, format='png')
         plt.close()
@@ -188,6 +202,8 @@ def debit_report(user_id: int):
     date_2 = get_state_date(user_id=user_id, column_date2=True)
     list_finances_operations = get_for_debit_or_credit_report(user_id=user_id, name_table=id_name_table,
                                                               date_1=date_1, date_2=date_2, credit=True)
+    date_1 = update_date(date_1)
+    date_2 = update_date(date_2)
 
     if list_finances_operations:
 
@@ -206,7 +222,8 @@ def debit_report(user_id: int):
 
         plt.pie(x=list_sum, labels=categories, autopct=make_autopct(df['сумма']),
                 textprops=dict(fontsize=8))
-        plt.title(f'Общий рассход: {sum(list_sum)}')
+        plt.title(f'Общий рассход: {round(sum(list_sum), 2)}\n'
+                  f'Период: {date_1} - {date_2}')
         buf = BytesIO()
         plt.savefig(buf, format='png')
         plt.close()

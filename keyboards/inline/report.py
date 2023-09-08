@@ -1,7 +1,7 @@
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 
-SELECT_DATE_BUTTON_REPORT = ("Сегодня", "Вчера", "Выбрать вручную")
+SELECT_DATE_BUTTON_REPORT = ("Сегодня", "Вчера", "За текущий месяц", "Выбрать вручную")
 
 
 def select_date_report_inline(start: bool) -> InlineKeyboardMarkup:
