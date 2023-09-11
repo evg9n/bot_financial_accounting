@@ -123,17 +123,21 @@ def save_all_operation(user_id: int, chat_id: int):
     date_2 = get_state_date(user_id=user_id, column_date2=True)
 
     list_operations = get_all_operations(user_id=user_id, name_table=name_table, date_1=date_1, date_2=date_2)
-    print(list_operations)
     dict_operations = dict()
     step = 2
     first = 0
     number = 1
     for _ in list_operations[::5]:
-        print('fdsssssssssssssssssssssssssssssssss')
         dict_operations[number] = list_operations[first:first + step]
         first += step
         number += 1
 
-    print(111111, dict_operations)
+    all_operations = dict_operations
+    current_sheet = 0
+    max_sheet = len(dict_operations.keys()) - 1
+
     with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as operations:
-        ...
+        operations['all_operations'] = all_operations
+        operations['current_sheet'] = current_sheet
+        operations['max_sheet'] = max_sheet
+

@@ -36,3 +36,7 @@ def select_period(start: bool = True, button_today: bool = True, button_yesterda
 
     markup.add(*buttons)
     return markup
+
+
+def all_operations_inline(all_operations: dict, current_sheet: int, max_sheet: int):
+    ...
