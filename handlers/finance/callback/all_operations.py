@@ -24,7 +24,18 @@ async def select_period_operation(call: CallbackQuery):
         today = date.today()
         set_state_date(user_id=user_id, date=today)
         set_state_date(user_id=user_id, date=today, column_date2=True)
-        await plug(user_id=user_id, message_id=message_id, edit=True)
+        current_operations, current_sheet, max_sheet = get_all_operation(user_id=user_id)
+
+        today = update_date(today)
+        if current_operations:
+            await bot.edit_message_text(chat_id=user_id, message_id=message_id, text=f"Период {today} - {today}",
+                                        reply_markup=all_operations_inline(current_operations=current_operations,
+                                                                           current_sheet=current_sheet,
+                                                                           max_sheet=max_sheet))
+        else:
+            await bot.edit_message_text(chat_id=user_id, message_id=message_id,
+                                        text=f"За период {today} - {today} данных нет")
+        # await plug(user_id=user_id, message_id=message_id, edit=True)
 
     elif text == BUTTONS_SELECT_PERIOD[1]:
         yesterday = date.today() - timedelta(days=1)
@@ -42,10 +53,14 @@ async def select_period_operation(call: CallbackQuery):
         today = update_date(today)
         start_month = update_date(start_month)
 
-        await bot.edit_message_text(chat_id=user_id, message_id=message_id, text=f"Период {start_month} - {today}",
-                                    reply_markup=all_operations_inline(current_operations=current_operations,
-                                                                       current_sheet=current_sheet,
-                                                                       max_sheet=max_sheet))
+        if current_operations:
+            await bot.edit_message_text(chat_id=user_id, message_id=message_id, text=f"Период {start_month} - {today}",
+                                        reply_markup=all_operations_inline(current_operations=current_operations,
+                                                                           current_sheet=current_sheet,
+                                                                           max_sheet=max_sheet))
+        else:
+            await bot.edit_message_text(chat_id=user_id, message_id=message_id,
+                                        text=f"За период {start_month} - {today} данных нет")
 
     elif text == BUTTONS_SELECT_PERIOD[3]:
         calendar_inline, step = Calendar(calendar_id=1).build()
@@ -117,7 +132,21 @@ async def calendar_2(call: CallbackQuery):
                                     reply_markup=key)
     elif result:
         set_state_date(user_id=user_id, date=result, column_date2=True)
-        await plug(user_id=user_id, message_id=message_id, edit=True)
+
+        current_operations, current_sheet, max_sheet = get_all_operation(user_id=user_id)
+
+        today = update_date(today)
+        start_month = update_date(start_month)
+
+        if current_operations:
+            await bot.edit_message_text(chat_id=user_id, message_id=message_id, text=f"Период {start_month} - {today}",
+                                        reply_markup=all_operations_inline(current_operations=current_operations,
+                                                                           current_sheet=current_sheet,
+                                                                           max_sheet=max_sheet))
+        else:
+            await bot.edit_message_text(chat_id=user_id, message_id=message_id,
+                                        text=f"За период {start_month} - {today} данных нет")
+        # await plug(user_id=user_id, message_id=message_id, edit=True)
 
 
 def get_all_operation(user_id: int):
