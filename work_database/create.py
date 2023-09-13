@@ -129,7 +129,9 @@ def create_table_state() -> bool:
                                 categories_operation VARCHAR(50),
                                 message_id BIGINT, 
                                 date DATE,
-                                date2 DATE
+                                date2 DATE,
+                                max_sheet BIGINT,
+                                current_sheet BIGINT
                                 )"""
     return create_query(sql_query=sql_query, with_database=True)
 

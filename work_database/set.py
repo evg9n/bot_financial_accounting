@@ -213,6 +213,30 @@ def set_state_user(user_id: int) -> bool:
     return set_query(sql_query=sql_query)
 
 
+def set_state_max_sheet(user_id: int, max_sheet: int) -> bool:
+    """
+    Изменение в таблице состояние максимальной страницы всех операций
+    :param user_id: id пользователя
+    :param max_sheet: номер максимальной страницы
+    :return: bool результат выполнения
+    """
+    sql_query = f"""UPDATE state set max_sheet = {max_sheet}
+                        WHERE ID = {user_id}"""
+    return set_query(sql_query=sql_query)
+
+
+def set_state_current_sheet(user_id: int, current_sheet: int) -> bool:
+    """
+    Изменение в таблице состояние текущей страницы всех операций
+    :param user_id: id пользователя
+    :param current_sheet: номер текущей страницы
+    :return: bool результат выполнения
+    """
+    sql_query = f"""UPDATE state set max_sheet = {current_sheet}
+                        WHERE ID = {user_id}"""
+    return set_query(sql_query=sql_query)
+
+
 def set_table_finance_operations(user_id: int, name_table: int, sum_operation: float, type_operation: str,
                                  name_operation: str, date: datetime.date, categories_operation: str = None):
     sql_query = f"""INSERT INTO finance_operations 

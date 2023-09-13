@@ -1,5 +1,6 @@
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 
+from utils.other import update_date
 
 BUTTONS_SELECT_PERIOD = ("За сегодня", "Вчера", "За текущий месяц", "Указать вручную", )
 
@@ -38,17 +39,31 @@ def select_period(start: bool = True, button_today: bool = True, button_yesterda
     return markup
 
 
-def all_operations_inline(all_operations: dict, current_sheet: int, max_sheet: int):
-    markup = InlineKeyboardMarkup(row_width=4)
+def all_operations_inline(current_operations: list, current_sheet: int, max_sheet: int):
+    markup = InlineKeyboardMarkup(row_width=3)
     buttons = list()
-    current_operations = all_operations.get(current_sheet)
+    buttons.append(InlineKeyboardButton(text="Вид", callback_data='None'))
+    buttons.append(InlineKeyboardButton(text="Сумма", callback_data='None'))
+    buttons.append(InlineKeyboardButton(text="Категория", callback_data='None'))
     for operation in current_operations:
         callback_data = f'all_operations_inline_{operation[0]}'
-        buttons.append(InlineKeyboardButton(text=operation[4], callback_data=callback_data))
+        buttons.append(InlineKeyboardButton(text=f"{'🟢' if operation[4] == 'доход' else '🔴'}{operation[4]}",
+                                            callback_data=callback_data))
+        # buttons.append(InlineKeyboardButton(text=f"{'🟢' if operation[4] == 'доход' else '🔴'}",
+        #                                     callback_data=callback_data))
         buttons.append(InlineKeyboardButton(text=str(operation[3]), callback_data=callback_data))
+
         buttons.append(InlineKeyboardButton(text=operation[5] if operation[5] != 'None' else ' ',
                                             callback_data=callback_data))
-        buttons.append(InlineKeyboardButton(text=str(operation[7]), callback_data=callback_data))
+        # buttons.append(InlineKeyboardButton(text=update_date(operation[7]), callback_data=callback_data))
+        # buttons.append(InlineKeyboardButton(text=" ", callback_data=callback_data))
+
+    buttons.append(InlineKeyboardButton(text=" ", callback_data="callback_data"))
+    buttons.append(InlineKeyboardButton(text=" ", callback_data="callback_data"))
+    buttons.append(InlineKeyboardButton(text=" ", callback_data="callback_data"))
+    buttons.append(InlineKeyboardButton(text=" ", callback_data="callback_data"))
+    # buttons.append(InlineKeyboardButton(text=" ", callback_data="callback_data"))
+    # buttons.append(InlineKeyboardButton(text=" ", callback_data="callback_data"))
 
     markup.add(*buttons)
     return markup

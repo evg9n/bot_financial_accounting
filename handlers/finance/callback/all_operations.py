@@ -5,9 +5,10 @@ from telebot.types import CallbackQuery
 from datetime import date, timedelta
 
 from states.finance import NAME_TABLE_FINANCE
+from utils.other import update_date
 from utils.plug import plug
 from work_database.get import get_state, get_state_date, get_all_operations, get_state_name_table, get_names_finance_id
-from work_database.set import set_state_date
+from work_database.set import set_state_date, set_state_max_sheet, set_state_current_sheet
 from utils.calendar import Calendar, LSTEP
 
 
@@ -33,27 +34,18 @@ async def select_period_operation(call: CallbackQuery):
 
     elif text == BUTTONS_SELECT_PERIOD[2]:
         today = date.today()
-        start_month = today - timedelta(days=today.day)
+        start_month = today - timedelta(days=today.day - 1)
         set_state_date(user_id=user_id, date=start_month)
         set_state_date(user_id=user_id, date=today, column_date2=True)
-        all_operations__, current_sheet, max_sheet = save_all_operation(user_id=user_id, chat_id=call.message.chat.id)
+        current_operations, current_sheet, max_sheet = get_all_operation(user_id=user_id)
 
-        # a = bot.retrieve_data(user_id=user_id, chat_id=call.message.chat.id)
-        #
-        # a.close()
+        today = update_date(today)
+        start_month = update_date(start_month)
 
-        # with bot.retrieve_data(user_id=user_id, chat_id=call.message.chat.id) as data:
-        #     data['all_operations'] = all_operations__
-        #     data['current_sheet'] = current_sheet
-        #     data['max_sheet'] = max_sheet
-
-        await bot.edit_message_text(chat_id=user_id, message_id=message_id, text="Финансы",
-                                    reply_markup=all_operations_inline(all_operations=all_operations__,
+        await bot.edit_message_text(chat_id=user_id, message_id=message_id, text=f"Период {start_month} - {today}",
+                                    reply_markup=all_operations_inline(current_operations=current_operations,
                                                                        current_sheet=current_sheet,
                                                                        max_sheet=max_sheet))
-        # await bot.send_message(chat_id=user_id, text="Финансы")
-
-        # await plug(user_id=user_id, message_id=message_id, edit=True)
 
     elif text == BUTTONS_SELECT_PERIOD[3]:
         calendar_inline, step = Calendar(calendar_id=1).build()
@@ -128,7 +120,7 @@ async def calendar_2(call: CallbackQuery):
         await plug(user_id=user_id, message_id=message_id, edit=True)
 
 
-def save_all_operation(user_id: int, chat_id: int):
+def get_all_operation(user_id: int):
     """[(1, 1158909236, 1, Decimal('464646.46'), 'доход', 'None', 'пвапва', datetime.date(2023, 8, 31)),
      (5, 1158909236, 1, Decimal('7484.40'), 'расход', 'Развитие', 'fdsfsdf', datetime.date(2023, 8, 31)),
      (6, 1158909236, 1, Decimal('14564.00'), 'расход', 'Развитие', 'Создать', datetime.date(2023, 9, 1)),
@@ -138,20 +130,13 @@ def save_all_operation(user_id: int, chat_id: int):
     date_1 = get_state_date(user_id=user_id)
     date_2 = get_state_date(user_id=user_id, column_date2=True)
 
-    list_operations = get_all_operations(user_id=user_id, name_table=name_table, date_1=date_1, date_2=date_2)
-    dict_operations = dict()
-    step = 2
-    first = 0
-    number = 0
-    for _ in list_operations[::step]:
-        dict_operations[number] = list_operations[first:first + step]
-        first += step
-        number += 1
+    list_operations = get_all_operations(user_id=user_id, name_table=name_table, date_1=date_1, date_2=date_2,
+                                         get_all=True)
 
-    all_operations__ = dict_operations
+    current_operations = list_operations[:10]
     current_sheet = 0
-    max_sheet = len(dict_operations.keys()) - 1
-    print()
+    max_sheet = len(list_operations)
+    set_state_max_sheet(user_id=user_id, max_sheet=max_sheet)
+    set_state_current_sheet(user_id=user_id, current_sheet=current_sheet)
 
-
-    return all_operations__, current_sheet, max_sheet
+    return current_operations, current_sheet, max_sheet

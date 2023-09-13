@@ -154,6 +154,28 @@ def get_state_date(user_id: int, column_date2: bool = False) -> Optional[datetim
     return result[0][0] if result else None
 
 
+def get_state_max_sheet(user_id) -> Optional[int]:
+    """
+    Получение текущего max_sheet из состояния
+    :param user_id: id пользователя
+    :return: текущий max_sheet
+    """
+    sql_query = f"""SELECT max_sheet FROM state WHERE id = {user_id} LIMIT 1"""
+    result = get_query(sql_query=sql_query)
+    return result[0][0] if result else None
+
+
+def get_state_current_sheet(user_id) -> Optional[int]:
+    """
+    Получение текущего current_sheet из состояния
+    :param user_id: id пользователя
+    :return: текущий current_sheet
+    """
+    sql_query = f"""SELECT current_sheet FROM state WHERE id = {user_id} LIMIT 1"""
+    result = get_query(sql_query=sql_query)
+    return result[0][0] if result else None
+
+
 def get_for_all_report(user_id: int, name_table: int, date_1: datetime.date, date_2: datetime.date):
     """Получение всех операций с полями sum_operation и type_operation"""
     sql_query = (f"""SELECT sum_operation, type_operation FROM finance_operations 
@@ -174,11 +196,19 @@ def get_for_debit_or_credit_report(user_id: int, name_table: int, date_1: dateti
     return get_query(sql_query=sql_query)
 
 
-def get_all_operations(user_id: int, name_table: int, date_1: datetime.date, date_2: datetime.date):
+def get_all_operations(user_id: int, name_table: int, date_1: datetime.date, date_2: datetime.date,
+                       current_sheet: int = 0, count_operation_one_sheet: int = 10, get_all: bool = False):
     """получение всех операций со всеми полями по периоду"""
-    sql_query = (f"""SELECT * FROM finance_operations 
-                        WHERE user_id = {user_id} AND name_table = {name_table} AND
-                        '{date_1}' <= date AND date <= '{date_2}'""")
+    if get_all:
+        sql_query = (f"""SELECT * FROM finance_operations 
+                    WHERE user_id = {user_id} AND name_table = {name_table} AND
+                    '{date_1}' <= date AND date <= '{date_2}' ORDER BY date DESC""")
+    else:
+        sql_query = (f"""SELECT * FROM finance_operations 
+                            WHERE user_id = {user_id} AND name_table = {name_table} AND
+                            '{date_1}' <= date AND date <= '{date_2}'
+                            LIMIT {count_operation_one_sheet} OFFSET {current_sheet * count_operation_one_sheet} 
+                            ORDER BY date DESC""")
     return get_query(sql_query=sql_query)
 
 
