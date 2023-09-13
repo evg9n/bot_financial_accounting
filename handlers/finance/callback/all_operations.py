@@ -1,5 +1,5 @@
 from loader import bot
-from keyboards.inline.all_operations import BUTTONS_SELECT_PERIOD, select_period
+from keyboards.inline.all_operations import BUTTONS_SELECT_PERIOD, select_period, all_operations_inline
 from re import sub
 from telebot.types import CallbackQuery
 from datetime import date, timedelta
@@ -36,8 +36,24 @@ async def select_period_operation(call: CallbackQuery):
         start_month = today - timedelta(days=today.day)
         set_state_date(user_id=user_id, date=start_month)
         set_state_date(user_id=user_id, date=today, column_date2=True)
-        # save_all_operation(user_id=user_id, chat_id=call.message.chat.id)
-        await plug(user_id=user_id, message_id=message_id, edit=True)
+        all_operations__, current_sheet, max_sheet = save_all_operation(user_id=user_id, chat_id=call.message.chat.id)
+
+        # a = bot.retrieve_data(user_id=user_id, chat_id=call.message.chat.id)
+        #
+        # a.close()
+
+        # with bot.retrieve_data(user_id=user_id, chat_id=call.message.chat.id) as data:
+        #     data['all_operations'] = all_operations__
+        #     data['current_sheet'] = current_sheet
+        #     data['max_sheet'] = max_sheet
+
+        await bot.edit_message_text(chat_id=user_id, message_id=message_id, text="Финансы",
+                                    reply_markup=all_operations_inline(all_operations=all_operations__,
+                                                                       current_sheet=current_sheet,
+                                                                       max_sheet=max_sheet))
+        # await bot.send_message(chat_id=user_id, text="Финансы")
+
+        # await plug(user_id=user_id, message_id=message_id, edit=True)
 
     elif text == BUTTONS_SELECT_PERIOD[3]:
         calendar_inline, step = Calendar(calendar_id=1).build()
@@ -126,18 +142,16 @@ def save_all_operation(user_id: int, chat_id: int):
     dict_operations = dict()
     step = 2
     first = 0
-    number = 1
-    for _ in list_operations[::5]:
+    number = 0
+    for _ in list_operations[::step]:
         dict_operations[number] = list_operations[first:first + step]
         first += step
         number += 1
 
-    all_operations = dict_operations
+    all_operations__ = dict_operations
     current_sheet = 0
     max_sheet = len(dict_operations.keys()) - 1
+    print()
 
-    with bot.retrieve_data(user_id=user_id, chat_id=chat_id) as operations:
-        operations['all_operations'] = all_operations
-        operations['current_sheet'] = current_sheet
-        operations['max_sheet'] = max_sheet
 
+    return all_operations__, current_sheet, max_sheet

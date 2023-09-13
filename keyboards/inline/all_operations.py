@@ -39,4 +39,16 @@ def select_period(start: bool = True, button_today: bool = True, button_yesterda
 
 
 def all_operations_inline(all_operations: dict, current_sheet: int, max_sheet: int):
-    ...
+    markup = InlineKeyboardMarkup(row_width=4)
+    buttons = list()
+    current_operations = all_operations.get(current_sheet)
+    for operation in current_operations:
+        callback_data = f'all_operations_inline_{operation[0]}'
+        buttons.append(InlineKeyboardButton(text=operation[4], callback_data=callback_data))
+        buttons.append(InlineKeyboardButton(text=str(operation[3]), callback_data=callback_data))
+        buttons.append(InlineKeyboardButton(text=operation[5] if operation[5] != 'None' else ' ',
+                                            callback_data=callback_data))
+        buttons.append(InlineKeyboardButton(text=str(operation[7]), callback_data=callback_data))
+
+    markup.add(*buttons)
+    return markup
