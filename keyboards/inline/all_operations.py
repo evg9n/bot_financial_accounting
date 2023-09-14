@@ -42,28 +42,32 @@ def select_period(start: bool = True, button_today: bool = True, button_yesterda
 def all_operations_inline(current_operations: list, current_sheet: int, max_sheet: int):
     markup = InlineKeyboardMarkup(row_width=3)
     buttons = list()
+
     buttons.append(InlineKeyboardButton(text="Вид", callback_data='None'))
     buttons.append(InlineKeyboardButton(text="Сумма", callback_data='None'))
     buttons.append(InlineKeyboardButton(text="Категория", callback_data='None'))
+
     for operation in current_operations:
         callback_data = f'all_operations_inline_{operation[0]}'
         buttons.append(InlineKeyboardButton(text=f"{'🟢' if operation[4] == 'доход' else '🔴'}{operation[4]}",
                                             callback_data=callback_data))
-        # buttons.append(InlineKeyboardButton(text=f"{'🟢' if operation[4] == 'доход' else '🔴'}",
-        #                                     callback_data=callback_data))
         buttons.append(InlineKeyboardButton(text=str(operation[3]), callback_data=callback_data))
 
         buttons.append(InlineKeyboardButton(text=operation[5] if operation[5] != 'None' else ' ',
                                             callback_data=callback_data))
-        # buttons.append(InlineKeyboardButton(text=update_date(operation[7]), callback_data=callback_data))
-        # buttons.append(InlineKeyboardButton(text=" ", callback_data=callback_data))
 
-    buttons.append(InlineKeyboardButton(text=" ", callback_data="callback_data"))
-    buttons.append(InlineKeyboardButton(text=" ", callback_data="callback_data"))
-    buttons.append(InlineKeyboardButton(text=" ", callback_data="callback_data"))
-    buttons.append(InlineKeyboardButton(text=" ", callback_data="callback_data"))
-    # buttons.append(InlineKeyboardButton(text=" ", callback_data="callback_data"))
-    # buttons.append(InlineKeyboardButton(text=" ", callback_data="callback_data"))
+    back_button = False if current_sheet == 0 else True
+    next_button = False if current_sheet + 1 == max_sheet else True
+
+    buttons.append(InlineKeyboardButton(text="◀️" if back_button else " ",
+                                        callback_data="callback_data_back" if back_button else "None"))
+    buttons.append(InlineKeyboardButton(text=f"{current_sheet + 1}", callback_data="None"))
+    buttons.append(InlineKeyboardButton(text="▶️" if next_button else " ",
+                                        callback_data="callback_data_back" if back_button else "None"))
+    buttons.append(InlineKeyboardButton(text="начало" if back_button else " ", callback_data="callback_data_first"))
+    buttons.append(InlineKeyboardButton(text=" ", callback_data="None"))
+    buttons.append(InlineKeyboardButton(text="конец" if next_button else " ", callback_data="callback_data_last"))
+    buttons.append(InlineKeyboardButton(text="Закрыть❌", callback_data="callback_data_close"))
 
     markup.add(*buttons)
     return markup

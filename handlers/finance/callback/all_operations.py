@@ -6,7 +6,6 @@ from datetime import date, timedelta
 
 from states.finance import NAME_TABLE_FINANCE
 from utils.other import update_date
-from utils.plug import plug
 from work_database.get import get_state, get_state_date, get_all_operations, get_state_name_table, get_names_finance_id
 from work_database.set import set_state_date, set_state_max_sheet, set_state_current_sheet
 from utils.calendar import Calendar, LSTEP
@@ -20,6 +19,7 @@ async def select_period_operation(call: CallbackQuery):
     user_id = call.from_user.id
     message_id = call.message.message_id
 
+    # Сегодня
     if text == BUTTONS_SELECT_PERIOD[0]:
         today = date.today()
         set_state_date(user_id=user_id, date=today)
@@ -37,12 +37,14 @@ async def select_period_operation(call: CallbackQuery):
                                         text=f"За период {today} - {today} данных нет")
         # await plug(user_id=user_id, message_id=message_id, edit=True)
 
+    # Вчера
     elif text == BUTTONS_SELECT_PERIOD[1]:
         yesterday = date.today() - timedelta(days=1)
         set_state_date(user_id=user_id, date=yesterday)
         await bot.edit_message_text(chat_id=user_id, text='Выбери окончание периода:', message_id=message_id,
                                     reply_markup=select_period(start=False, button_manually=False, button_month=False))
 
+    # Текущий месяц
     elif text == BUTTONS_SELECT_PERIOD[2]:
         today = date.today()
         start_month = today - timedelta(days=today.day - 1)
@@ -62,6 +64,7 @@ async def select_period_operation(call: CallbackQuery):
             await bot.edit_message_text(chat_id=user_id, message_id=message_id,
                                         text=f"За период {start_month} - {today} данных нет")
 
+    # Вручную указать
     elif text == BUTTONS_SELECT_PERIOD[3]:
         calendar_inline, step = Calendar(calendar_id=1).build()
         await bot.edit_message_text(chat_id=user_id, message_id=message_id, text=f'Выбери {LSTEP[step]} начала:',
@@ -95,25 +98,42 @@ async def select_period_operation(call: CallbackQuery):
     text = sub(pattern='select_period_2_operation_', repl='', string=call.data)
     user_id = call.from_user.id
     message_id = call.message.message_id
+    date2 = ''
 
+    # Сегодня
     if text == BUTTONS_SELECT_PERIOD[0]:
-        today = date.today()
-        set_state_date(user_id=user_id, column_date2=True, date=today)
-        await plug(user_id=user_id, message_id=message_id, edit=True)
+        date2 = date.today()
+        set_state_date(user_id=user_id, column_date2=True, date=date2)
+        # await plug(user_id=user_id, message_id=message_id, edit=True)
 
+    # Вчера
     elif text == BUTTONS_SELECT_PERIOD[1]:
-        yesterday = date.today() - timedelta(days=1)
-        set_state_date(user_id=user_id, column_date2=True, date=yesterday)
-        await plug(user_id=user_id, message_id=message_id, edit=True)
+        date2 = date.today() - timedelta(days=1)
+        set_state_date(user_id=user_id, column_date2=True, date=date2)
+        # await plug(user_id=user_id, message_id=message_id, edit=True)
 
-    # elif text == BUTTONS_SELECT_PERIOD[2]:
-    #     today = date.today()
-    #     start_month = today - timedelta(days=today.day - 1)
-
+    # Вручную указать
     elif text == BUTTONS_SELECT_PERIOD[3]:
         calendar_inline, step = Calendar(calendar_id=2).build()
         await bot.edit_message_text(chat_id=user_id, message_id=message_id, text=f'Выбери {LSTEP[step]} окончание:',
                                     reply_markup=calendar_inline)
+        return
+
+    current_operations, current_sheet, max_sheet = get_all_operation(user_id=user_id)
+
+    date1 = get_state_date(user_id=user_id)
+
+    date1 = update_date(date1)
+    date2 = update_date(date2)
+
+    if current_operations:
+        await bot.edit_message_text(chat_id=user_id, message_id=message_id, text=f"Период {date1} - {date2}",
+                                    reply_markup=all_operations_inline(current_operations=current_operations,
+                                                                       current_sheet=current_sheet,
+                                                                       max_sheet=max_sheet))
+    else:
+        await bot.edit_message_text(chat_id=user_id, message_id=message_id,
+                                    text=f"За период {date2} - {date2} данных нет")
 
 
 @bot.callback_query_handler(func=lambda call: (call.data.startswith('cbcal_2') and
@@ -135,17 +155,20 @@ async def calendar_2(call: CallbackQuery):
 
         current_operations, current_sheet, max_sheet = get_all_operation(user_id=user_id)
 
-        today = update_date(today)
-        start_month = update_date(start_month)
+        date1 = get_state_date(user_id=user_id)
+        date2 = result
+
+        date1 = update_date(date1)
+        date2 = update_date(date2)
 
         if current_operations:
-            await bot.edit_message_text(chat_id=user_id, message_id=message_id, text=f"Период {start_month} - {today}",
+            await bot.edit_message_text(chat_id=user_id, message_id=message_id, text=f"Период {date1} - {date2}",
                                         reply_markup=all_operations_inline(current_operations=current_operations,
                                                                            current_sheet=current_sheet,
                                                                            max_sheet=max_sheet))
         else:
             await bot.edit_message_text(chat_id=user_id, message_id=message_id,
-                                        text=f"За период {start_month} - {today} данных нет")
+                                        text=f"За период {date2} - {date2} данных нет")
         # await plug(user_id=user_id, message_id=message_id, edit=True)
 
 
