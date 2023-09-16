@@ -1,27 +1,19 @@
 name: Deploy to remote server
 on:
   push:
-    branches: [ main ]
+    branches: 
+      - main
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-      - name: Copy SSH key to server
-        uses: invi5H/ssh-action@v1.0.0
+      - name: Run git pull on server
+        uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST_SERVER }}
           username: ${{ secrets.USERNAME_SERVER }}
-          key: ${{ secrets.KEY_SERVER }}
-          source: ".ssh/id_rsa"
-          target: "~/.ssh/id_rsa"
-          strip_components: 1
-      - name: Run git pull on server
-        uses: invi5H/ssh-action@v1.0.0
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.KEY }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd ~/projects/bot_financial_accounting && git pull origin main && systemctl restart bot_financial_accounting.service
+            cd ~/projects/bot_financial_accounting
+            git pull origin main
+            systemctl restart bot_financial_accounting.service
