@@ -11,9 +11,9 @@ jobs:
       - name: Copy SSH key to server
         uses: appleboy/scp-action@master
         with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.KEY }}
+          host: ${{ secrets.HOST_SERVER }}
+          username: ${{ secrets.USERNAME_SERVER }}
+          key: ${{ secrets.KEY_SERVER }}
           source: ".ssh/id_ed25519"
           target: "~/.ssh/id_ed25519"
           strip_components: 1
@@ -24,5 +24,4 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.KEY }}
           script: |
-            cd /root/projects/bot_financial_accounting
-            git pull origin main
+            cd /root/projects/bot_financial_accounting && git pull origin main && systemctl restart bot_financial_accounting.service
