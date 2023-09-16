@@ -1,23 +1,30 @@
 name: Deploy to remote server
 on:
   push:
-    branches: [ main ]
+    branches: 
+      - main
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     steps:
-    - name: Create SSH key
-      run: |
-        mkdir -p ~/.ssh/
-        echo "$SSH_PRIVATE_KEY" > ../private.key
-        sudo chmod 600 ../private.key
-        echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
-      shell: bash
-      env:
-        SSH_PRIVATE_KEY: ${{secrets.SSH_PRIVATE_KEY}}
-        SSH_KNOWN_HOSTS: ${{secrets.SSH_KNOWN_HOSTS}}
-        SSH_KEY_PATH: ${{ github.workspace }}/../private.key
-        USERNAME_SERVER: ${{secrets.USERNAME_SERVER}}
-        HOST_SERVER: ${{secrets.HOST_SERVER}}
-    - name: Execute git pull on remote server
-      run: ssh -i $SSH_KEY_PATH USERNAME_SERVER@HOST_SERVER 'cd ~/projects/bot_financial_accounting && git pull origin main && systemctl restart bot_financial_accounting.service'
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Copy SSH key to server
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.HOST_SERVER }}
+          username: ${{ secrets.USERNAME_SERVER }}
+          key: ${{ secrets.KEY_SERVER }}
+          source: ".ssh/id_rsa"
+          target: "~/.ssh/id_rsa"
+          strip_components: 1
+      - name: Run git pull on server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST_SERVER }}
+          username: ${{ secrets.USERNAME_SERVER }}
+          key: ${{ secrets.KEY_SERVER }}
+          script: |
+            cd ~/projects/bot_financial_accounting
+            git pull origin main
+            systemctl restart bot_financial_accounting.service
