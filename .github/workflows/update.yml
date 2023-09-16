@@ -14,4 +14,6 @@ jobs:
           username: ${{ secrets.USERNAME_SERVER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            ${{secrets.COMMAND_SERVER}}}
+            cd ~/projects/bot_financial_accounting
+            git pull origin main
+            systemctl restart bot_financial_accounting.service
