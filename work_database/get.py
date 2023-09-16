@@ -205,10 +205,9 @@ def get_all_operations(user_id: int, name_table: int, date_1: datetime.date, dat
                     '{date_1}' <= date AND date <= '{date_2}' ORDER BY date DESC""")
     else:
         sql_query = (f"""SELECT * FROM finance_operations 
-                            WHERE user_id = {user_id} AND name_table = {name_table} AND
-                            '{date_1}' <= date AND date <= '{date_2}'
-                            LIMIT {count_operation_one_sheet} OFFSET {current_sheet * count_operation_one_sheet} 
-                            ORDER BY date DESC""")
+                    WHERE user_id = {user_id} AND name_table = {name_table} AND
+                    '{date_1}' <= date AND date <= '{date_2}'
+                    LIMIT {count_operation_one_sheet} OFFSET {current_sheet * count_operation_one_sheet}""")
     return get_query(sql_query=sql_query)
 
 

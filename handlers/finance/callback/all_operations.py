@@ -6,7 +6,8 @@ from datetime import date, timedelta
 
 from states.finance import NAME_TABLE_FINANCE
 from utils.other import update_date
-from work_database.get import get_state, get_state_date, get_all_operations, get_state_name_table, get_names_finance_id
+from work_database.get import get_state, get_state_date, get_all_operations, get_state_name_table, get_names_finance_id, \
+    get_state_max_sheet, get_state_current_sheet
 from work_database.set import set_state_date, set_state_max_sheet, set_state_current_sheet
 from utils.calendar import Calendar, LSTEP
 
@@ -172,6 +173,55 @@ async def calendar_2(call: CallbackQuery):
         # await plug(user_id=user_id, message_id=message_id, edit=True)
 
 
+@bot.callback_query_handler(func=lambda call: (call.data.startswith('all_operations_inline_') and
+                                               get_state(user_id=call.from_user.id) in (NAME_TABLE_FINANCE, )))
+async def callback_all_operation(call: CallbackQuery):
+    text = call.data
+    if text == "all_operations_inline_":
+        return
+
+    user_id = call.from_user.id
+    message_id = call.message.message_id
+    text = sub(pattern="all_operations_inline_", repl='', string=call.data)
+
+    if text == 'close':
+        await bot.delete_message(chat_id=user_id, message_id=message_id)
+        return
+
+    current_sheet = get_state_current_sheet(user_id=user_id)
+    max_sheet = get_state_max_sheet(user_id=user_id)
+    name_table = get_state_name_table(user_id=user_id)
+    name_table = get_names_finance_id(user_id=user_id, name=name_table)
+    date_1 = get_state_date(user_id=user_id)
+    date_2 = get_state_date(user_id=user_id, column_date2=True)
+
+    if text == 'next':
+        current_sheet += 1
+        set_state_current_sheet(user_id=user_id, current_sheet=current_sheet)
+
+    elif text == 'back':
+        current_sheet -= 1
+        set_state_current_sheet(user_id=user_id, current_sheet=current_sheet)
+
+    elif text == 'first':
+        current_sheet = 0
+        set_state_current_sheet(user_id=user_id, current_sheet=current_sheet)
+    elif text == 'last':
+        current_sheet = max_sheet - 1
+        set_state_current_sheet(user_id=user_id, current_sheet=current_sheet)
+
+    current_operations = get_all_operations(user_id=user_id, name_table=name_table,
+                                            date_1=date_1, date_2=date_2, current_sheet=current_sheet)
+    if current_operations:
+        await bot.edit_message_text(chat_id=user_id, message_id=message_id, text=f"Период {date_1} - {date_2}",
+                                    reply_markup=all_operations_inline(current_operations=current_operations,
+                                                                       current_sheet=current_sheet,
+                                                                       max_sheet=max_sheet))
+    else:
+        await bot.edit_message_text(chat_id=user_id, message_id=message_id,
+                                    text=f"За период {date_1} - {date_2} данных нет")
+
+
 def get_all_operation(user_id: int):
     """[(1, 1158909236, 1, Decimal('464646.46'), 'доход', 'None', 'пвапва', datetime.date(2023, 8, 31)),
      (5, 1158909236, 1, Decimal('7484.40'), 'расход', 'Развитие', 'fdsfsdf', datetime.date(2023, 8, 31)),
@@ -184,10 +234,10 @@ def get_all_operation(user_id: int):
 
     list_operations = get_all_operations(user_id=user_id, name_table=name_table, date_1=date_1, date_2=date_2,
                                          get_all=True)
-
     current_operations = list_operations[:10]
     current_sheet = 0
-    max_sheet = len(list_operations)
+    count_operations = len(list_operations)
+    max_sheet = count_operations // 10 if count_operations % 10 == 0 else count_operations // 10 + 1
     set_state_max_sheet(user_id=user_id, max_sheet=max_sheet)
     set_state_current_sheet(user_id=user_id, current_sheet=current_sheet)
 

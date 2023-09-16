@@ -232,7 +232,7 @@ def set_state_current_sheet(user_id: int, current_sheet: int) -> bool:
     :param current_sheet: номер текущей страницы
     :return: bool результат выполнения
     """
-    sql_query = f"""UPDATE state set max_sheet = {current_sheet}
+    sql_query = f"""UPDATE state set current_sheet = {current_sheet}
                         WHERE ID = {user_id}"""
     return set_query(sql_query=sql_query)
 
