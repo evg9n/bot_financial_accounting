@@ -12,7 +12,7 @@ jobs:
         with:
           host: ${{ secrets.HOST_SERVER }}
           username: ${{ secrets.USERNAME_SERVER }}
-          key: ${{ secrets.KEY_SERVER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd ~/projects/bot_financial_accounting
             git pull origin main
