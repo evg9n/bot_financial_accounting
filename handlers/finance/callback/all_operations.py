@@ -1,5 +1,6 @@
 from loader import bot
-from keyboards.inline.all_operations import BUTTONS_SELECT_PERIOD, select_period, all_operations_inline
+from keyboards.inline.all_operations import BUTTONS_SELECT_PERIOD, select_period, all_operations_inline, \
+    operation_inline, pop_operation_inline
 from re import sub
 from telebot.types import CallbackQuery
 from datetime import date, timedelta
@@ -7,8 +8,8 @@ from datetime import date, timedelta
 from states.finance import NAME_TABLE_FINANCE
 from utils.other import update_date
 from work_database.get import get_state, get_state_date, get_all_operations, get_state_name_table, get_names_finance_id, \
-    get_state_max_sheet, get_state_current_sheet
-from work_database.set import set_state_date, set_state_max_sheet, set_state_current_sheet
+    get_state_max_sheet, get_state_current_sheet, get_operation
+from work_database.set import set_state_date, set_state_max_sheet, set_state_current_sheet, pop_operation
 from utils.calendar import Calendar, LSTEP
 
 
@@ -188,6 +189,28 @@ async def callback_all_operation(call: CallbackQuery):
         await bot.delete_message(chat_id=user_id, message_id=message_id)
         return
 
+    elif text.isdigit():
+        id_operation = int(text)
+        operation = get_operation(id_operation=id_operation)
+        if operation:
+            if operation[5] != 'None':
+                text = (f"Вид операции: {operation[4]}\n\n"
+                        f"Категория операции: {operation[5]}\n\n"
+                        f"Сумма: {operation[3]}\n\n"
+                        f"Комментарий: {operation[6]}\n\n"
+                        f"Дата операции: {operation[7]}")
+            else:
+                text = (f"Вид операции: {operation[4]}\n\n"
+                        f"Сумма: {operation[3]}\n\n"
+                        f"Комментарий: {operation[6]}\n\n"
+                        f"Дата операции: {operation[7]}")
+
+            await bot.edit_message_text(chat_id=user_id, message_id=message_id, text=text,
+                                        reply_markup=operation_inline(id_operation=id_operation))
+        else:
+            await bot.edit_message_text(chat_id=user_id, message_id=message_id, text='Нет данных')
+        return
+
     current_sheet = get_state_current_sheet(user_id=user_id)
     max_sheet = get_state_max_sheet(user_id=user_id)
     name_table = get_state_name_table(user_id=user_id)
@@ -222,6 +245,105 @@ async def callback_all_operation(call: CallbackQuery):
                                     text=f"За период {date_1} - {date_2} данных нет")
 
 
+@bot.callback_query_handler(func=lambda call: (call.data.startswith('operation_inline_') and
+                                               get_state(user_id=call.from_user.id) in (NAME_TABLE_FINANCE, )))
+async def callback_operation(call: CallbackQuery):
+    text = call.data
+    user_id = call.from_user.id
+    message_id = call.message.message_id
+    text = sub(pattern="operation_inline_", repl='', string=text)
+
+    if text == 'close':
+        await bot.delete_message(chat_id=user_id, message_id=message_id)
+        return
+
+    if 'delete' in text:
+        text = text[6:]
+        if text.isdigit():
+            id_operation = int(text)
+            await bot.edit_message_text(chat_id=user_id, message_id=message_id,
+                                        text='Точно удалить?🤨', reply_markup=pop_operation_inline(id_operation))
+            return
+
+    current_sheet = get_state_current_sheet(user_id=user_id)
+    name_table = get_state_name_table(user_id=user_id)
+    name_table = get_names_finance_id(user_id=user_id, name=name_table)
+    date_1 = get_state_date(user_id=user_id)
+    date_2 = get_state_date(user_id=user_id, column_date2=True)
+    max_sheet = get_state_max_sheet(user_id=user_id)
+    current_operations = get_all_operations(user_id=user_id, name_table=name_table,
+                                            date_1=date_1, date_2=date_2, current_sheet=current_sheet)
+    if current_operations:
+        await bot.edit_message_text(chat_id=user_id, message_id=message_id, text=f"Период {date_1} - {date_2}",
+                                    reply_markup=all_operations_inline(current_operations=current_operations,
+                                                                       current_sheet=current_sheet,
+                                                                       max_sheet=max_sheet))
+    else:
+        await bot.edit_message_text(chat_id=user_id, message_id=message_id,
+                                    text=f"За период {date_1} - {date_2} данных нет")
+
+
+@bot.callback_query_handler(func=lambda call: (call.data.startswith('delete_operation_') and
+                                               get_state(user_id=call.from_user.id) in (NAME_TABLE_FINANCE, )))
+async def callback_pop_operation(call: CallbackQuery):
+    text = call.data
+    user_id = call.from_user.id
+    message_id = call.message.message_id
+    text = sub(pattern="delete_operation_", repl='', string=text)
+
+    if 'no' in text:
+        id_operation = int(text[2:])
+        operation = get_operation(id_operation=id_operation)
+        if operation:
+            if operation[5] != 'None':
+                text = (f"Вид операции: {operation[4]}\n\n"
+                        f"Категория операции: {operation[5]}\n\n"
+                        f"Сумма: {operation[3]}\n\n"
+                        f"Комментарий: {operation[6]}\n\n"
+                        f"Дата операции: {operation[7]}")
+            else:
+                text = (f"Вид операции: {operation[4]}\n\n"
+                        f"Сумма: {operation[3]}\n\n"
+                        f"Комментарий: {operation[6]}\n\n"
+                        f"Дата операции: {operation[7]}")
+
+            await bot.edit_message_text(chat_id=user_id, message_id=message_id, text=text,
+                                        reply_markup=operation_inline(id_operation=id_operation))
+        else:
+            await bot.edit_message_text(chat_id=user_id, message_id=message_id, text='Нет данных')
+
+    elif 'yes' in text:
+        id_operation = int(text[3:])
+        pop_operation(id_operation=id_operation)
+        current_sheet = get_state_current_sheet(user_id=user_id)
+        name_table = get_state_name_table(user_id=user_id)
+        name_table = get_names_finance_id(user_id=user_id, name=name_table)
+        date_1 = get_state_date(user_id=user_id)
+        date_2 = get_state_date(user_id=user_id, column_date2=True)
+        max_sheet = update_max_sheet(user_id=user_id, name_table=name_table,
+                                     date_1=date_1, date_2=date_2)
+
+        if max_sheet is None:
+            await bot.edit_message_text(message_id=message_id, chat_id=user_id,
+                                        text='Запись удалена, но что-то пошло не так 😅')
+            return
+
+        if max_sheet == current_sheet:
+            current_sheet -= 1
+            set_state_current_sheet(user_id=user_id, current_sheet=current_sheet)
+
+        current_operations = get_all_operations(user_id=user_id, name_table=name_table,
+                                                date_1=date_1, date_2=date_2, current_sheet=current_sheet)
+        if current_operations:
+            await bot.edit_message_text(chat_id=user_id, message_id=message_id, text=f"Период {date_1} - {date_2}",
+                                        reply_markup=all_operations_inline(current_operations=current_operations,
+                                                                           current_sheet=current_sheet,
+                                                                           max_sheet=max_sheet))
+        else:
+            await bot.edit_message_text(chat_id=user_id, message_id=message_id,
+                                        text=f"За период {date_1} - {date_2} данных нет")
+
+
 def get_all_operation(user_id: int):
     """[(1, 1158909236, 1, Decimal('464646.46'), 'доход', 'None', 'пвапва', datetime.date(2023, 8, 31)),
      (5, 1158909236, 1, Decimal('7484.40'), 'расход', 'Развитие', 'fdsfsdf', datetime.date(2023, 8, 31)),
@@ -234,6 +356,7 @@ def get_all_operation(user_id: int):
 
     list_operations = get_all_operations(user_id=user_id, name_table=name_table, date_1=date_1, date_2=date_2,
                                          get_all=True)
+
     current_operations = list_operations[:10]
     current_sheet = 0
     count_operations = len(list_operations)
@@ -242,3 +365,15 @@ def get_all_operation(user_id: int):
     set_state_current_sheet(user_id=user_id, current_sheet=current_sheet)
 
     return current_operations, current_sheet, max_sheet
+
+
+def update_max_sheet(user_id: int, name_table: int, date_1, date_2):
+    list_operations = get_all_operations(user_id=user_id, name_table=name_table, date_1=date_1, date_2=date_2,
+                                         get_all=True)
+    if list_operations:
+        count_operations = len(list_operations)
+        max_sheet = count_operations // 10 if count_operations % 10 == 0 else count_operations // 10 + 1
+        set_state_max_sheet(user_id=user_id, max_sheet=max_sheet)
+        return max_sheet
+    else:
+        return None

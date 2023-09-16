@@ -211,6 +211,14 @@ def get_all_operations(user_id: int, name_table: int, date_1: datetime.date, dat
     return get_query(sql_query=sql_query)
 
 
+def get_operation(id_operation: int):
+    """Получение конкретной операции по id"""
+    sql_query = (f"""SELECT * FROM finance_operations 
+                WHERE id = {id_operation} LIMIT 1""")
+    result = get_query(sql_query=sql_query)
+    return result[0]
+
+
 def get_test():
     """
     Получение текущего финанса из состояния

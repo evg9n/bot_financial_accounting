@@ -54,10 +54,8 @@ def all_operations_inline(current_operations: list, current_sheet: int, max_shee
                                             callback_data=callback_data_operation))
         buttons.append(InlineKeyboardButton(text=str(operation[3]), callback_data=callback_data_operation))
 
-        buttons.append(InlineKeyboardButton(text=operation[5] if operation[5] != callback_data else ' ',
+        buttons.append(InlineKeyboardButton(text=operation[5] if operation[5] != 'None' else ' ',
                                             callback_data=callback_data_operation))
-
-    print(222222222222222, current_sheet, max_sheet)
     back_button = False if current_sheet == 0 else True
     next_button = False if current_sheet + 1 == max_sheet else True
 
@@ -80,6 +78,29 @@ def all_operations_inline(current_operations: list, current_sheet: int, max_shee
                                         callback_data=callback_data + "last" if next_button else callback_data))
 
     buttons.append(InlineKeyboardButton(text="Закрыть❌", callback_data=callback_data + "close"))
+
+    markup.add(*buttons)
+    return markup
+
+
+def operation_inline(id_operation: int) -> InlineKeyboardMarkup:
+    markup = InlineKeyboardMarkup(row_width=1)
+    callback_data = 'operation_inline_'
+
+    buttons = [InlineKeyboardButton(text='Назад', callback_data=callback_data + 'back'),
+               InlineKeyboardButton(text='Закрыть', callback_data=callback_data + 'close'),
+               InlineKeyboardButton(text='Удалить', callback_data=callback_data + f'delete{id_operation}')]
+
+    markup.add(*buttons)
+    return markup
+
+
+def pop_operation_inline(id_operation: int) -> InlineKeyboardMarkup:
+    markup = InlineKeyboardMarkup(row_width=1)
+    callback_data = 'delete_operation_'
+
+    buttons = [InlineKeyboardButton(text='Точно 😎', callback_data=callback_data + f'yes{id_operation}'),
+               InlineKeyboardButton(text='ОЙ, только не это 😱', callback_data=callback_data + f'no{id_operation}')]
 
     markup.add(*buttons)
     return markup

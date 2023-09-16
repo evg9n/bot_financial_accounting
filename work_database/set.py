@@ -245,3 +245,10 @@ def set_table_finance_operations(user_id: int, name_table: int, sum_operation: f
                     ({user_id}, '{name_table}', {sum_operation}, '{type_operation}', '{categories_operation}', 
                     '{name_operation}', '{date}')"""
     return set_query(sql_query=sql_query)
+
+
+def pop_operation(id_operation: id):
+    """Удаление операции из таблицы finance_operations"""
+    sql_query = f"""DELETE FROM finance_operations 
+                WHERE id = {id_operation}"""
+    set_query(sql_query=sql_query)
