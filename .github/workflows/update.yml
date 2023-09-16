@@ -17,5 +17,7 @@ jobs:
         SSH_PRIVATE_KEY: ${{secrets.SSH_PRIVATE_KEY}}
         SSH_KNOWN_HOSTS: ${{secrets.SSH_KNOWN_HOSTS}}
         SSH_KEY_PATH: ${{ github.workspace }}/../private.key
+        USERNAME_SERVER: ${{secrets.USERNAME_SERVER}}
+        HOST_SERVER: ${{secrets.HOST_SERVER}}
     - name: Execute git pull on remote server
-      run: ssh -i $SSH_KEY_PATH user@host 'cd ~/projects/bot_financial_accounting && git pull origin main'
+      run: ssh -i $SSH_KEY_PATH USERNAME_SERVER@HOST_SERVER 'cd ~/projects/bot_financial_accounting && git pull origin main && systemctl restart bot_financial_accounting.service'
