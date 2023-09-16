@@ -7,17 +7,6 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-      - name: Copy SSH key to server
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.HOST_SERVER }}
-          username: ${{ secrets.USERNAME_SERVER }}
-          key: ${{ secrets.KEY_SERVER }}
-          source: ".ssh/id_rsa"
-          target: "~/.ssh/id_rsa"
-          strip_components: 1
       - name: Run git pull on server
         uses: appleboy/ssh-action@master
         with:
