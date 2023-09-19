@@ -34,7 +34,9 @@ async def select_date_report(call: CallbackQuery):
         yesterday = date.today() - timedelta(days=1)
         set_state_date(user_id=user_id, date=yesterday)
         await bot.edit_message_text(chat_id=user_id, text="Выбери до какого периода:", message_id=message_id,
-                                    reply_markup=select_date_report_inline(start=False))
+                                    reply_markup=select_date_report_inline(start=False, button_month=False,
+                                                                           button_manually=False,
+                                                                           button_skip=True))
 
     elif text == SELECT_DATE_BUTTON_REPORT[2]:
         today = date.today()
@@ -49,6 +51,27 @@ async def select_date_report(call: CallbackQuery):
                                     text=f'Выбери с какого месяца {LSTEP[step]}:',
                                     reply_markup=calendar_inline,
                                     message_id=call.message.id)
+
+
+@bot.callback_query_handler(func=lambda call: (call.data.startswith('cbcal_1') and
+                                               get_state(user_id=call.from_user.id) in
+                                               (ALL_REPORT, CREDIT_REPORT, )))
+async def calendar_1(call: CallbackQuery):
+    """Обработка календаря ОТ"""
+    result, key, step = Calendar(calendar_id=1).process(call_data=call.data)
+    user_id = call.from_user.id
+    message_id = call.message.message_id
+
+    if not result and key:
+        await bot.edit_message_text(text=f"Выбери с какого числа {LSTEP[step]}:",
+                                    chat_id=user_id,
+                                    message_id=message_id,
+                                    reply_markup=key)
+    elif result:
+        set_state_date(user_id=user_id, date=result)
+        await bot.edit_message_text(chat_id=user_id, text="Выбери до какого периода:", message_id=message_id,
+                                    reply_markup=select_date_report_inline(start=False, button_month=False,
+                                                                           button_skip=True))
 
 
 @bot.callback_query_handler(func=lambda call: (call.data.startswith('menu_data2_report') and
@@ -70,36 +93,20 @@ async def select_date2_report(call: CallbackQuery):
         set_state_date(user_id=user_id, date=yesterday, column_date2=True)
         await send_report(user_id=user_id, message_id=message_id)
 
-    elif text == SELECT_DATE_BUTTON_REPORT[2]:
+    elif text == SELECT_DATE_BUTTON_REPORT[3]:
         min_date = get_state_date(user_id=user_id)
         calendar_inline, step = Calendar(calendar_id=2, min_date=min_date).build()
         await bot.delete_message(chat_id=call.message.chat.id,
                                  message_id=message_id)
         await bot.send_message(chat_id=call.message.chat.id,
-                                    text=f'Выбери до какого месяца {LSTEP[step]}:',
-                                    reply_markup=calendar_inline,
-                                    # message_id=message_id
+                               text=f'Выбери до какого месяца {LSTEP[step]}:',
+                               reply_markup=calendar_inline
                                )
 
-
-@bot.callback_query_handler(func=lambda call: (call.data.startswith('cbcal_1') and
-                                               get_state(user_id=call.from_user.id) in
-                                               (ALL_REPORT, CREDIT_REPORT, )))
-async def calendar_1(call: CallbackQuery):
-    """Обработка календаря ОТ"""
-    result, key, step = Calendar(calendar_id=1).process(call_data=call.data)
-    user_id = call.from_user.id
-    message_id = call.message.message_id
-
-    if not result and key:
-        await bot.edit_message_text(text=f"Выбери с какого числа {LSTEP[step]}:",
-                                    chat_id=user_id,
-                                    message_id=message_id,
-                                    reply_markup=key)
-    elif result:
-        set_state_date(user_id=user_id, date=result)
-        await bot.edit_message_text(chat_id=user_id, text="Выбери до какого периода:", message_id=message_id,
-                                    reply_markup=select_date_report_inline(start=False))
+    elif text == SELECT_DATE_BUTTON_REPORT[4]:
+        date_2 = get_state_date(user_id=user_id)
+        set_state_date(user_id=user_id, date=date_2, column_date2=True)
+        await send_report(user_id=user_id, message_id=message_id)
 
 
 @bot.callback_query_handler(func=lambda call: (call.data.startswith('cbcal_2') and
