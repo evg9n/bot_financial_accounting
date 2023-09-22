@@ -4,8 +4,7 @@ from loader import bot
 from telebot.types import CallbackQuery
 from keyboards.inline.finance import SELECT_DATE_BUTTON, select_date
 from work_database.set import set_state_date, set_state, set_state_categore_operation
-# from telegram_bot_calendar import DetailedTelegramCalendar, LSTEP
-from work_database.get import get_state, get_state_message_id
+from work_database.get import get_state
 from utils.calendar import Calendar, LSTEP
 from states.finance import *
 

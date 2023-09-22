@@ -1,7 +1,5 @@
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-from utils.other import update_date
-
 BUTTONS_SELECT_PERIOD = ("За сегодня", "Вчера", "За текущий месяц", "Указать вручную", )
 
 

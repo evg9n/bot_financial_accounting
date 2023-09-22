@@ -1,5 +1,5 @@
-from telebot.types import ReplyKeyboardMarkup, ReplyKeyboardRemove, KeyboardButton
-from work_database.get import get_names_finance
+from telebot.types import ReplyKeyboardMarkup, KeyboardButton
+from work_database.get import get_names_finance, get_state_name_table
 from keyboards.reply.basic import BUTTON_MAIN_MENU, BUTTONS_BACK
 
 
@@ -35,9 +35,13 @@ def create_finance() -> ReplyKeyboardMarkup:
     return markup
 
 
-def menu_finance() -> ReplyKeyboardMarkup:
+def menu_finance(user_id: int) -> ReplyKeyboardMarkup:
     markup = ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
     buttons = [KeyboardButton(text) for text in BUTTONS_MENU_FINANCE]
+    name_table = get_state_name_table(user_id=user_id)
+    if name_table is not None:
+        buttons.insert(0, KeyboardButton(text=name_table))
+        buttons.insert(0, KeyboardButton(text='Текущий финанс =>'))
     markup.add(*buttons)
     return markup
 

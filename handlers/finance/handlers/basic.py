@@ -35,7 +35,7 @@ async def select(message: Message):
     elif text in current_name_table:
         set_state_name_table(user_id=user_id, name_table=message.text)
         set_state(user_id=user_id, state=NAME_TABLE_FINANCE)
-        await bot.send_message(chat_id=user_id, text=text, reply_markup=menu_finance())
+        await bot.send_message(chat_id=user_id, text=text, reply_markup=menu_finance(user_id=user_id))
 
     # Переход в главное меню
     elif text in (BUTTON_MAIN_MENU, ):
@@ -147,7 +147,7 @@ async def delete_name_table(message: Message):
     elif BUTTONS_YES_OR_NO[1] == text:
         set_state(user_id=user_id, state=NAME_TABLE_FINANCE)
         await bot.send_message(chat_id=user_id, text=f'Правильно 😁',
-                               reply_markup=menu_finance())
+                               reply_markup=menu_finance(user_id=user_id))
 
 
 def check_sum(number: str) -> Optional[float]:

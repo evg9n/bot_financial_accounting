@@ -23,7 +23,7 @@ async def sum_debit_or_kredit(message: Message):
     # Вернуться назад
     if number == BUTTONS_BACK:
         set_state(user_id=user_id, state=NAME_TABLE_FINANCE)
-        await bot.send_message(chat_id=user_id, text=number, reply_markup=menu_finance())
+        await bot.send_message(chat_id=user_id, text=number, reply_markup=menu_finance(user_id=user_id))
         return
 
     # Выйти в главное меню
@@ -73,7 +73,7 @@ async def name_finance(message: Message):
                                      type_operation=result[5],
                                      date=result[9], name_operation=text, categories_operation=result[7])
         set_state(user_id=user_id, state=NAME_TABLE_FINANCE)
-        await bot.send_message(chat_id=user_id, text='Список финансов:', reply_markup=menu_finance())
+        await bot.send_message(chat_id=user_id, text='Список финансов:', reply_markup=menu_finance(user_id=user_id))
 
 
 @bot.message_handler(func=lambda message: (get_state(user_id=message.from_user.id) in

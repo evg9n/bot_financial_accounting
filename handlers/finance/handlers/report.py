@@ -23,7 +23,7 @@ async def menu_report(message: Message):
         await bot.send_message(chat_id=user_id, text=TEXT_MAIN_MENU, reply_markup=main_menu())
     elif text == BUTTONS_REPORT_MENU[-2]:
         set_state(user_id=user_id, state=NAME_TABLE_FINANCE)
-        await bot.send_message(chat_id=user_id, text='Выбери:', reply_markup=menu_finance())
+        await bot.send_message(chat_id=user_id, text='Выбери:', reply_markup=menu_finance(user_id=user_id))
     else:
         if text == BUTTONS_REPORT_MENU[0]:
             set_state(user_id=user_id, state=ALL_REPORT)
