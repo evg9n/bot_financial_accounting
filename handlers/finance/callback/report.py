@@ -7,7 +7,7 @@ from telebot.types import CallbackQuery
 
 from loader import bot
 from keyboards.inline.report import SELECT_DATE_BUTTON_REPORT, select_date_report_inline
-from utils.other import update_date
+from utils.other import update_date, break_ranks
 from work_database.set import set_state_date, set_state
 from work_database.get import get_state, get_names_finance_id, get_for_all_report, \
     get_state_name_table, get_state_date, get_for_debit_or_credit_report
@@ -141,9 +141,9 @@ async def send_report(user_id: int, message_id: int):
             await bot.delete_message(chat_id=user_id, message_id=message_id)
             await bot.send_message(chat_id=user_id, text='Нет данных')
         else:
-            text = (f'Расход: {round(sum_credit, 2)}\n'
-                    f'Доход: {round(sum_debit, 2)}\n'
-                    f'Прибыль: {round(sum_debit - sum_credit, 2)}')
+            text = (f'Расход: {break_ranks(sum_credit)}\n'
+                    f'Доход: {break_ranks(sum_debit)}\n'
+                    f'Прибыль: {break_ranks(sum_debit - sum_credit)}')
             await bot.delete_message(chat_id=user_id, message_id=message_id)
             await bot.send_photo(chat_id=user_id, photo=buf, caption=text)
 
@@ -156,10 +156,10 @@ async def send_report(user_id: int, message_id: int):
             text = str()
             s = 0.0
             for key, value in dict_sum.items():
-                text += f"{key}: {value}\n"
+                text += f"{key}: {break_ranks(value)}\n"
                 s += value
             else:
-                text += f"Всего: {round(s, 2)}"
+                text += f"Всего: {break_ranks(s)}"
 
             await bot.delete_message(message_id=message_id, chat_id=user_id)
             await bot.send_photo(chat_id=user_id, photo=buf, caption=text)
@@ -189,7 +189,7 @@ def report_all(user_id: int):
         exp = (0.1, 0.1)
         plt.pie(x=[sum_debit, sum_credit], labels=['доход', 'расход'], autopct=make_autopct(list_sum),
                 colors=['green', 'red'], explode=exp, textprops=dict(fontsize=8))
-        plt.title(f'Прибыль: {round(sum_debit - sum_credit, 2)}\n'
+        plt.title(f'Прибыль: {break_ranks(sum_debit - sum_credit)}\n'
                   f'Период: {date_1} - {date_2}')
         buf = BytesIO()
         plt.savefig(buf, format='png')
@@ -229,7 +229,7 @@ def debit_report(user_id: int):
 
         plt.pie(x=list_sum, labels=categories, autopct=make_autopct(df['сумма']),
                 textprops=dict(fontsize=8))
-        plt.title(f'Общий рассход: {round(sum(list_sum), 2)}\n'
+        plt.title(f'Общий рассход: {break_ranks(sum(list_sum))}\n'
                   f'Период: {date_1} - {date_2}')
         buf = BytesIO()
         plt.savefig(buf, format='png')

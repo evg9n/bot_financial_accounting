@@ -6,7 +6,7 @@ from telebot.types import CallbackQuery
 from datetime import date, timedelta
 
 from states.finance import NAME_TABLE_FINANCE
-from utils.other import update_date
+from utils.other import update_date, break_ranks
 from work_database.get import get_state, get_state_date, get_all_operations, get_state_name_table, get_names_finance_id, \
     get_state_max_sheet, get_state_current_sheet, get_operation
 from work_database.set import set_state_date, set_state_max_sheet, set_state_current_sheet, pop_operation
@@ -196,12 +196,12 @@ async def callback_all_operation(call: CallbackQuery):
             if operation[5] != 'None':
                 text = (f"Вид операции: {operation[4]}\n\n"
                         f"Категория операции: {operation[5]}\n\n"
-                        f"Сумма: {operation[3]}\n\n"
+                        f"Сумма: {break_ranks(operation[3])}\n\n"
                         f"Комментарий: {operation[6]}\n\n"
                         f"Дата операции: {operation[7]}")
             else:
                 text = (f"Вид операции: {operation[4]}\n\n"
-                        f"Сумма: {operation[3]}\n\n"
+                        f"Сумма: {break_ranks(operation[3])}\n\n"
                         f"Комментарий: {operation[6]}\n\n"
                         f"Дата операции: {operation[7]}")
 

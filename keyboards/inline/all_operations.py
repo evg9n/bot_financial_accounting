@@ -1,5 +1,7 @@
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 
+from utils.other import break_ranks
+
 BUTTONS_SELECT_PERIOD = ("За сегодня", "Вчера", "За текущий месяц", "Указать вручную", )
 
 
@@ -50,7 +52,7 @@ def all_operations_inline(current_operations: list, current_sheet: int, max_shee
         callback_data_operation = f'all_operations_inline_{operation[0]}'
         buttons.append(InlineKeyboardButton(text=f"{'🟢' if operation[4] == 'доход' else '🔴'}{operation[4]}",
                                             callback_data=callback_data_operation))
-        buttons.append(InlineKeyboardButton(text=str(operation[3]), callback_data=callback_data_operation))
+        buttons.append(InlineKeyboardButton(text=break_ranks(operation[3]), callback_data=callback_data_operation))
 
         buttons.append(InlineKeyboardButton(text=operation[5] if operation[5] != 'None' else ' ',
                                             callback_data=callback_data_operation))
