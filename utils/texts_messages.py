@@ -2,7 +2,7 @@
 TEXT_PLUG = "Данная функция в разработке"
 
 # basic.py
-TEXT_START = 'Я тута'
+TEXT_START = 'Погнали 😎'
 TEXT_MY_FINANCE = 'Твои финансы'
 
 # finance/handlers/all_operations.py

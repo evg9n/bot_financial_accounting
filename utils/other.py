@@ -1,5 +1,17 @@
 from datetime import date
 from typing import Union
+from loader import environ
+
+
+ADMINS = environ.get('ADMINS')
+
+
+def check_admin(user_id: int) -> bool:
+    """Админ?"""
+    if ADMINS is None:
+        return False
+
+    return user_id in [int(admin.strip()) for admin in ADMINS.split(',')]
 
 
 def update_date(d: date) -> str:

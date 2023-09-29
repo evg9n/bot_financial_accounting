@@ -78,7 +78,7 @@ def set_users(message: Message) -> bool:
     return set_query(sql_query=sql_query)
 
 
-def set_state(user_id: int, state=None) -> bool:
+def set_state(user_id: int, state = None) -> bool:
     """
     Изменение в таблице состояние само состояние
     :param user_id: id пользователя

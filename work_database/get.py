@@ -2,7 +2,6 @@ import datetime
 from typing import Optional, Union
 
 from loader import environ
-from telebot.types import Message
 from psycopg2 import connect, errors
 from logging import getLogger
 from traceback import format_exc
@@ -58,6 +57,13 @@ def get_query(sql_query: str) -> list:
             cursor.close()
     except UnboundLocalError:
         return result
+
+
+def get_users() -> list:
+    """Получить всех пользователей"""
+    sql_query = "SELECT * FROM users"
+    result = get_query(sql_query=sql_query)
+    return result
 
 
 def get_names_finance(user_id) -> list:
