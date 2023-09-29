@@ -40,7 +40,7 @@ async def select(message: Message):
     # Переход в главное меню
     elif text in (BUTTON_MAIN_MENU, ):
         set_state(user_id=message.from_user.id)
-        await bot.send_message(chat_id=message.from_user.id, text=text, reply_markup=main_menu())
+        await bot.send_message(chat_id=message.from_user.id, text=text, reply_markup=main_menu(user_id))
 
 
 @bot.message_handler(func=lambda message: get_state(user_id=message.from_user.id) == CREATE_FINANCE)
@@ -102,7 +102,7 @@ async def name_table_finance(message: Message):
     # Перейти в главное меню
     elif text == BUTTONS_MENU_FINANCE[-2]:
         set_state(user_id=user_id)
-        await bot.send_message(chat_id=user_id, text=text, reply_markup=main_menu())
+        await bot.send_message(chat_id=user_id, text=text, reply_markup=main_menu(user_id))
 
     # Вернуться назад
     elif text == BUTTONS_MENU_FINANCE[-3]:

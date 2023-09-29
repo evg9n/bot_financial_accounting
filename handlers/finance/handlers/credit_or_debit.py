@@ -29,7 +29,7 @@ async def sum_debit_or_kredit(message: Message):
     # Выйти в главное меню
     elif number == BUTTON_MAIN_MENU:
         set_state(user_id=user_id)
-        await bot.send_message(chat_id=user_id, text=number, reply_markup=main_menu())
+        await bot.send_message(chat_id=user_id, text=number, reply_markup=main_menu(user_id))
         return
     current_state = get_state(user_id=user_id)
 
@@ -62,7 +62,7 @@ async def name_finance(message: Message):
 
     if text == BUTTON_MAIN_MENU:
         set_state(user_id=user_id)
-        await bot.send_message(chat_id=user_id, text=TEXT_MAIN_MENU, reply_markup=main_menu())
+        await bot.send_message(chat_id=user_id, text=TEXT_MAIN_MENU, reply_markup=main_menu(user_id))
     elif text == BUTTONS_BACK:
         set_state(user_id=user_id, state=DATE_FINANCE)
         await bot.send_message(chat_id=user_id, text=TEXT_INPUT_SUM, reply_markup=select_date())
@@ -84,7 +84,7 @@ async def other(message: Message):
 
     if text == BUTTON_MAIN_MENU:
         set_state(user_id=user_id)
-        await bot.send_message(chat_id=user_id, text=TEXT_MAIN_MENU, reply_markup=main_menu())
+        await bot.send_message(chat_id=user_id, text=TEXT_MAIN_MENU, reply_markup=main_menu(user_id))
     elif text == BUTTONS_BACK:
         current_state = get_state(user_id=user_id)
 
