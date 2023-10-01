@@ -5,7 +5,7 @@ from work_database.get import get_names_finance
 
 
 main_menu_buttons = ('Мои финансы', "Код учетной записи")
-main_menu_buttons_admin = ('Количество пользователей', )
+main_menu_buttons_admin = ('Количество пользователей', 'Рассылка')
 BUTTONS_ADD_FINANCE = 'Создать'
 BUTTON_MAIN_MENU = 'Главное меню'
 BUTTONS_BACK = 'Назад🔙'
