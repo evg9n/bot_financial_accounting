@@ -1,7 +1,7 @@
 from telebot.types import KeyboardButton, ReplyKeyboardMarkup
 
 
-BUTTON_MAILING_ADMIN = ("Потвердить", "Пропустить", 'Отмена',)
+BUTTON_MAILING_ADMIN = ("Потвердить", "Дальше", 'Отмена',)
 
 
 def mailing_keyboard(confirm: bool = False, skip: bool = False) -> ReplyKeyboardMarkup:

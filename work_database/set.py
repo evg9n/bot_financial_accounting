@@ -252,3 +252,10 @@ def pop_operation(id_operation: id):
     sql_query = f"""DELETE FROM finance_operations 
                 WHERE id = {id_operation}"""
     set_query(sql_query=sql_query)
+
+
+def pop_user(user_id: id):
+    """Удаление операции из таблицы finance_operations"""
+    sql_query = f"""DELETE FROM users 
+                WHERE user_id = {user_id}"""
+    set_query(sql_query=sql_query)

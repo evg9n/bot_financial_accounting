@@ -59,10 +59,14 @@ def get_query(sql_query: str) -> list:
         return result
 
 
-def get_users() -> list:
+def get_users(only_user_id: bool = False) -> list:
     """Получить всех пользователей"""
-    sql_query = "SELECT * FROM users"
-    result = get_query(sql_query=sql_query)
+    if only_user_id:
+        sql_query = "SELECT user_id FROM users"
+        result = [user_id[0] for user_id in get_query(sql_query=sql_query)]
+    else:
+        sql_query = "SELECT * FROM users"
+        result = get_query(sql_query=sql_query)
     return result
 
 

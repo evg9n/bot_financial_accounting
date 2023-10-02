@@ -49,10 +49,9 @@ async def my_finance(message: Message):
                                reply_markup=main_menu(message.from_user.id))
 
     elif main_menu_buttons_admin[1] == text and admin:
-        text = 'Функция в разработке'
-        # set_state(user_id=user_id, state=TEXT_MAILING_ADMIN)
-        # await bot.send_message(chat_id=user_id, text=text, reply_markup=mailing_keyboard())
-        await bot.send_message(chat_id=user_id, text=text)
+        text = 'Пришли текст'
+        set_state(user_id=user_id, state=TEXT_MAILING_ADMIN)
+        await bot.send_message(chat_id=user_id, text=text, reply_markup=mailing_keyboard())
 
     else:
         text = "Что-то непонятное ты пишешь🤔"

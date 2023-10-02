@@ -2,15 +2,16 @@ from json import dump, load
 from os import remove
 
 from telebot.types import Message
+from telebot.asyncio_helper import ApiTelegramException
 
+from keyboards.inline.admin import inline_mailing
 from keyboards.reply.admin import BUTTON_MAILING_ADMIN, mailing_keyboard
 from keyboards.reply.basic import main_menu
 from loader import bot
 from states.admin import TEXT_MAILING_ADMIN, BUTTONS_MAILING_TEXT_ADMIN, PHOTOS_MAILING_ADMIN_STATE, \
     BUTTONS_MAILING_URL_ADMIN, SEND_MAILING_ADMIN
 from work_database.get import get_state, get_users
-from work_database.set import set_state
-
+from work_database.set import set_state, pop_user
 
 PATH_JSON = '{user_id}mailing.json'
 
@@ -93,7 +94,7 @@ async def url_button_mailing(message: Message):
             dict_json['buttons'][-1].append(text)
             set_json(user_id=user_id, dict_json=dict_json)
             set_state(user_id=user_id, state=BUTTONS_MAILING_TEXT_ADMIN)
-            text = f'Пришли текст еще одной кнопки или жми {BUTTON_MAILING_ADMIN[1]}'
+            text = f'Пришли текст еще одной кнопки или жми "{BUTTON_MAILING_ADMIN[1]}"'
             await bot.send_message(chat_id=user_id, text=text, reply_markup=mailing_keyboard(skip=True))
         else:
             await bot.send_message(chat_id=user_id, text='Разве ссылка так выглядит?🤔', reply_markup=mailing_keyboard())
@@ -106,7 +107,7 @@ async def photos_mailing(message: Message):
     dict_json = get_json(user_id=user_id)
     dict_json['photos'].append(message.photo[-1].file_id)
     set_json(user_id=user_id, dict_json=dict_json)
-    text = f'Пришли еще одну или жми {BUTTON_MAILING_ADMIN[1]}'
+    text = f'Пришли еще одну или жми "{BUTTON_MAILING_ADMIN[1]}"'
     await bot.send_message(chat_id=user_id, text=text, reply_markup=mailing_keyboard(skip=True))
 
 
@@ -121,7 +122,7 @@ async def photos_mailing(message: Message):
 
     elif text == BUTTON_MAILING_ADMIN[1]:
         set_state(user_id=user_id, state=SEND_MAILING_ADMIN)
-        text = f'После нажатия {BUTTON_MAILING_ADMIN[0]} рассылка сразу же уйдет'
+        text = f'После нажатия "{BUTTON_MAILING_ADMIN[0]}" рассылка сразу же уйдет'
         await bot.send_message(chat_id=user_id, text=text, reply_markup=mailing_keyboard(confirm=True))
 
     else:
@@ -136,8 +137,29 @@ async def send_mailing(message: Message):
     text = message.text
 
     if text == BUTTON_MAILING_ADMIN[0]:
-        text = f'{get_users()}'
-        await bot.send_message(chat_id=user_id, text=text)
+        list_users = get_users(only_user_id=True)
+        dict_json = get_json(user_id=user_id)
+        text = dict_json.get('text')
+        buttons = dict_json.get('buttons')
+        photos = dict_json.get('photos')
+
+        for user in list_users:
+            try:
+                for photo in photos:
+                    await bot.send_photo(chat_id=user, photo=photo)
+                await bot.send_message(chat_id=user, text=text, reply_markup=inline_mailing(list_buttons=buttons))
+            except ApiTelegramException as error:
+                if 'Forbidden: bot was blocked by the user' == error.description:
+                    pop_user(user_id=user)
+                    from loader import environ
+                    admins = environ.get('ADMINS')
+                    for admin in [int(admin.strip()) for admin in admins.split(',')]:
+                        text = f'Пользоватьель {user} заблокировал меня поэтому я его удалил и все его данные😡'
+                        await bot.send_message(chat_id=admin, text=text)
+
+        text = 'Рассылка выполнена'
+        close_mailing(user_id=user_id)
+        await bot.send_message(chat_id=user_id, text=text, reply_markup=main_menu(user_id))
 
     elif text == BUTTON_MAILING_ADMIN[2]:
         text = close_mailing(user_id)
