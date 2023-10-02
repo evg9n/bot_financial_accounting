@@ -1,7 +1,9 @@
 from logging import getLogger
 from telebot.types import Message
 
+from keyboards.reply.admin import mailing_keyboard
 from loader import bot
+from states.admin import TEXT_MAILING_ADMIN
 from utils.other import check_admin
 from work_database.set import set_users, set_state, set_state_user
 from work_database.get import get_state, get_users
@@ -48,7 +50,9 @@ async def my_finance(message: Message):
 
     elif main_menu_buttons_admin[1] == text and admin:
         text = 'Функция в разработке'
-        await bot.send_message(chat_id=user_id, text="text")
+        # set_state(user_id=user_id, state=TEXT_MAILING_ADMIN)
+        # await bot.send_message(chat_id=user_id, text=text, reply_markup=mailing_keyboard())
+        await bot.send_message(chat_id=user_id, text=text)
 
     else:
         text = "Что-то непонятное ты пишешь🤔"

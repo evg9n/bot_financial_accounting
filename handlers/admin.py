@@ -7,8 +7,8 @@ from keyboards.reply.admin import BUTTON_MAILING_ADMIN, mailing_keyboard
 from keyboards.reply.basic import main_menu
 from loader import bot
 from states.admin import TEXT_MAILING_ADMIN, BUTTONS_MAILING_TEXT_ADMIN, PHOTOS_MAILING_ADMIN_STATE, \
-    BUTTONS_MAILING_URL_ADMIN
-from work_database.get import get_state
+    BUTTONS_MAILING_URL_ADMIN, SEND_MAILING_ADMIN
+from work_database.get import get_state, get_users
 from work_database.set import set_state
 
 
@@ -70,7 +70,7 @@ async def text_button_mailing(message: Message):
 
     else:
         dict_json = get_json(user_id=user_id)
-        dict_json['buttons'].append(text)
+        dict_json['buttons'].append([text])
         set_json(user_id=user_id, dict_json=dict_json)
         set_state(user_id=user_id, state=BUTTONS_MAILING_URL_ADMIN)
         text = 'Пришли ссылку'
@@ -79,7 +79,7 @@ async def text_button_mailing(message: Message):
 
 @bot.message_handler(content_types=['text'],
                      func=lambda message: get_state(message.from_user.id) == BUTTONS_MAILING_URL_ADMIN)
-async def text_button_mailing(message: Message):
+async def url_button_mailing(message: Message):
     user_id = message.from_user.id
     text = message.text
 
@@ -96,4 +96,53 @@ async def text_button_mailing(message: Message):
             text = f'Пришли текст еще одной кнопки или жми {BUTTON_MAILING_ADMIN[1]}'
             await bot.send_message(chat_id=user_id, text=text, reply_markup=mailing_keyboard(skip=True))
         else:
-            bot.send_message(chat_id=user_id, text='Разве ссылка так выглядит?🤔', reply_markup=mailing_keyboard())
+            await bot.send_message(chat_id=user_id, text='Разве ссылка так выглядит?🤔', reply_markup=mailing_keyboard())
+
+
+@bot.message_handler(content_types=['photo'],
+                     func=lambda message: get_state(message.from_user.id) == PHOTOS_MAILING_ADMIN_STATE)
+async def photos_mailing(message: Message):
+    user_id = message.from_user.id
+    dict_json = get_json(user_id=user_id)
+    dict_json['photos'].append(message.photo[-1].file_id)
+    set_json(user_id=user_id, dict_json=dict_json)
+    text = f'Пришли еще одну или жми {BUTTON_MAILING_ADMIN[1]}'
+    await bot.send_message(chat_id=user_id, text=text, reply_markup=mailing_keyboard(skip=True))
+
+
+@bot.message_handler(content_types=['text'],
+                     func=lambda message: get_state(message.from_user.id) == PHOTOS_MAILING_ADMIN_STATE)
+async def photos_mailing(message: Message):
+    user_id = message.from_user.id
+    text = message.text
+    if text == BUTTON_MAILING_ADMIN[2]:
+        text = close_mailing(user_id)
+        await bot.send_message(chat_id=user_id, text=text, reply_markup=main_menu(user_id))
+
+    elif text == BUTTON_MAILING_ADMIN[1]:
+        set_state(user_id=user_id, state=SEND_MAILING_ADMIN)
+        text = f'После нажатия {BUTTON_MAILING_ADMIN[0]} рассылка сразу же уйдет'
+        await bot.send_message(chat_id=user_id, text=text, reply_markup=mailing_keyboard(confirm=True))
+
+    else:
+        text = f'Что-что? Я не понял'
+        await bot.send_message(chat_id=user_id, text=text, reply_markup=mailing_keyboard(skip=True))
+
+
+@bot.message_handler(content_types=['text'],
+                     func=lambda message: get_state(message.from_user.id) == SEND_MAILING_ADMIN)
+async def send_mailing(message: Message):
+    user_id = message.from_user.id
+    text = message.text
+
+    if text == BUTTON_MAILING_ADMIN[0]:
+        text = f'{get_users()}'
+        await bot.send_message(chat_id=user_id, text=text)
+
+    elif text == BUTTON_MAILING_ADMIN[2]:
+        text = close_mailing(user_id)
+        await bot.send_message(chat_id=user_id, text=text, reply_markup=main_menu(user_id))
+
+    else:
+        text = f'Что-то? Я не понял'
+        await bot.send_message(chat_id=user_id, text=text, reply_markup=mailing_keyboard(confirm=True))
