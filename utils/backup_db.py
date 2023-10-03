@@ -1,6 +1,5 @@
 from json import dump
-from datetime import date, datetime
-from decimal import Decimal
+from datetime import datetime
 from os.path import abspath, join
 
 from work_database.get import get_all_state, get_users, get_all_names_finance, get_all_finance_operations

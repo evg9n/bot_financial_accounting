@@ -161,6 +161,30 @@ async def send_mailing(message: Message):
         close_mailing(user_id=user_id)
         await bot.send_message(chat_id=user_id, text=text, reply_markup=main_menu(user_id))
 
+    if text == BUTTON_MAILING_ADMIN[3]:
+        from loader import environ
+        list_admins = [int(admin.strip()) for admin in environ.get('ADMINS').split(',')]
+        dict_json = get_json(user_id=user_id)
+        text = dict_json.get('text')
+        buttons = dict_json.get('buttons')
+        photos = dict_json.get('photos')
+
+        for user in list_admins:
+            try:
+                for photo in photos:
+                    await bot.send_photo(chat_id=user, photo=photo)
+                await bot.send_message(chat_id=user, text=text, reply_markup=inline_mailing(list_buttons=buttons))
+            except ApiTelegramException as error:
+                if 'Forbidden: bot was blocked by the user' == error.description:
+                    pop_user(user_id=user)
+                    for admin in list_admins:
+                        text = f'Пользоватьель(админ) {user} заблокировал меня поэтому я его удалил и все его данные😡'
+                        await bot.send_message(chat_id=admin, text=text)
+
+        text = 'Рассылка для админов выполнена'
+        close_mailing(user_id=user_id)
+        await bot.send_message(chat_id=user_id, text=text, reply_markup=main_menu(user_id))
+
     elif text == BUTTON_MAILING_ADMIN[2]:
         text = close_mailing(user_id)
         await bot.send_message(chat_id=user_id, text=text, reply_markup=main_menu(user_id))
