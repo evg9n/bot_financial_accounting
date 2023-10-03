@@ -4,6 +4,7 @@ from telebot.types import Message
 from keyboards.reply.admin import mailing_keyboard
 from loader import bot
 from states.admin import TEXT_MAILING_ADMIN
+from utils.backup_db import backup_db
 from utils.other import check_admin
 from work_database.set import set_users, set_state, set_state_user
 from work_database.get import get_state, get_users
@@ -52,6 +53,11 @@ async def my_finance(message: Message):
         text = 'Пришли текст'
         set_state(user_id=user_id, state=TEXT_MAILING_ADMIN)
         await bot.send_message(chat_id=user_id, text=text, reply_markup=mailing_keyboard())
+
+    elif main_menu_buttons_admin[2] == text and admin:
+        reslut_backup = backup_db(user_id=user_id)
+        text = 'backup готов' if reslut_backup else 'Что-то пошло не так и backup не выполнен'
+        await bot.send_message(chat_id=user_id, text=text)
 
     else:
         text = "Что-то непонятное ты пишешь🤔"

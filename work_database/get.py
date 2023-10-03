@@ -5,6 +5,10 @@ from loader import environ
 from psycopg2 import connect, errors
 from logging import getLogger
 from traceback import format_exc
+from dotenv import load_dotenv
+# from os import environ
+#
+# load_dotenv()
 
 
 log = getLogger('get_database')
@@ -57,17 +61,6 @@ def get_query(sql_query: str) -> list:
             cursor.close()
     except UnboundLocalError:
         return result
-
-
-def get_users(only_user_id: bool = False) -> list:
-    """Получить всех пользователей"""
-    if only_user_id:
-        sql_query = "SELECT user_id FROM users"
-        result = [user_id[0] for user_id in get_query(sql_query=sql_query)]
-    else:
-        sql_query = "SELECT * FROM users"
-        result = get_query(sql_query=sql_query)
-    return result
 
 
 def get_names_finance(user_id) -> list:
@@ -227,6 +220,38 @@ def get_operation(id_operation: int):
                 WHERE id = {id_operation} LIMIT 1""")
     result = get_query(sql_query=sql_query)
     return result[0]
+
+
+def get_users(only_user_id: bool = False) -> list:
+    """Получить всех пользователей"""
+    if only_user_id:
+        sql_query = "SELECT user_id FROM users"
+        result = [user_id[0] for user_id in get_query(sql_query=sql_query)]
+    else:
+        sql_query = "SELECT * FROM users"
+        result = get_query(sql_query=sql_query)
+    return result
+
+
+def get_all_finance_operations() -> list:
+    """Получить всех финансовых операций"""
+    sql_query = "SELECT * FROM finance_operations"
+    result = get_query(sql_query=sql_query)
+    return result
+
+
+def get_all_names_finance() -> list:
+    """Получить все имена баз"""
+    sql_query = "SELECT * FROM names_finance"
+    result = get_query(sql_query=sql_query)
+    return result
+
+
+def get_all_state() -> list:
+    """Получить всех состояний"""
+    sql_query = "SELECT * FROM state"
+    result = get_query(sql_query=sql_query)
+    return result
 
 
 def get_test():
