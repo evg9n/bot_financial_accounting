@@ -8,6 +8,7 @@ from keyboards.reply.basic import BUTTON_MAIN_MENU, BUTTONS_BACK
 from loader import bot
 from states.finance import DEBIT_FINANCE, CREDIT_FINANCE, NAME_TABLE_FINANCE, DATE_FINANCE, NAME_FINANCE, \
     SELECT_CATEGORIES_FINANCE
+from utils.other import update_date, break_ranks
 from work_database.get import get_state, get_names_finance_id, get_state_type_operation
 from work_database.set import (set_state, set_state_sum_operation, set_state_message_id,
                                set_state_categories_operation, set_table_finance_operations, set_state_type_operation)
@@ -68,11 +69,25 @@ async def name_finance(message: Message):
         await bot.send_message(chat_id=user_id, text=TEXT_INPUT_SUM, reply_markup=select_date())
     else:
         result = get_state(user_id=user_id, get_all=True)
+        sum_operation = result[4]
+        type_operation = result[5]
+        date = result[9]
+        categories_operation = result[7]
         id_finance = get_names_finance_id(user_id=user_id, name=result[3])
-        set_table_finance_operations(user_id=user_id, name_table=id_finance, sum_operation=result[4],
-                                     type_operation=result[5],
-                                     date=result[9], name_operation=text, categories_operation=result[7])
+        set_table_finance_operations(user_id=user_id, name_table=id_finance, sum_operation=sum_operation,
+                                     type_operation=type_operation,
+                                     date=date, name_operation=text, categories_operation=categories_operation)
         set_state(user_id=user_id, state=NAME_TABLE_FINANCE)
+
+        text_categories_operation = "Категория: {t}\n"
+        text = (f'Добавлен {type_operation}:\n\n'
+                f'Сумма: {break_ranks(sum_operation)}\n'
+                f'Дата: {update_date(d=date)}\n'
+                f'{"" if categories_operation == "None" else text_categories_operation.format(t=categories_operation)}'
+                f'Комментарий: {text}\n')
+
+        await bot.send_message(chat_id=user_id, text=text)
+
         await bot.send_message(chat_id=user_id, text='Список финансов:', reply_markup=menu_finance(user_id=user_id))
 
 
