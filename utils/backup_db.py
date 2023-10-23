@@ -1,6 +1,7 @@
 from json import dump
 from datetime import datetime
 from os.path import abspath, join
+from re import sub
 
 from work_database.get import get_all_state, get_users, get_all_names_finance, get_all_finance_operations
 
@@ -54,7 +55,9 @@ def backup_db(user_id: int) -> bool:
         list_state=list_state,
         list_users=list_users
     )
-    path_file = abspath(join('backups', f'{user_id}_{datetime.now()}_copy.json'))
+    name_file = f'{user_id}_{datetime.now()}'
+    name_file = sub(r'[\s\.]', '_', name_file)
+    path_file = abspath(join('backups', f'{name_file}.json'))
     with open(path_file, mode='w', encoding='utf-8') as file:
         dump(result, file, indent=4, ensure_ascii=False)
 
