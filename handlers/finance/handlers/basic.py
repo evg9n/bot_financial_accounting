@@ -173,7 +173,7 @@ async def delete_name_table(message: Message):
 
 def check_sum(number: str) -> Optional[float]:
     """Проверка на валидность числа"""
-    number = sub(pattern=',', repl='.', string=number)
+    number = sub(pattern=',', repl='.', string=number).strip()
     try:
         number = float(number)
         number = round(number, 2)
