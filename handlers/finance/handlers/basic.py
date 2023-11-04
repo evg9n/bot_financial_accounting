@@ -7,11 +7,13 @@ from states.finance import *
 from loader import bot
 from keyboards.reply.basic import main_menu, main_menu_buttons
 from keyboards.reply.finance import list_finance, BUTTONS_ADD_FINANCE, NOT_FINANCE, \
-    create_finance, menu_finance, BUTTONS_MENU_FINANCE, main_menu_or_back, yes_or_no, BUTTONS_YES_OR_NO
+    create_finance, menu_finance, BUTTONS_MENU_FINANCE, main_menu_or_back, yes_or_no, BUTTONS_YES_OR_NO, \
+    buttons_credit_or_debit
 from keyboards.reply.basic import BUTTON_MAIN_MENU, BUTTONS_BACK
 from states.report import TYPE_REPORT
+from utils.plug import random_answer
 from work_database.get import get_names_finance, get_state, get_state_name_table
-from work_database.set import set_names_finance, set_state, set_state_name_table
+from work_database.set import set_names_finance, set_state, set_state_name_table, set_state_sum_operation
 
 
 @bot.message_handler(func=lambda message: get_state(user_id=message.from_user.id) == SELECT_FINANCE)
@@ -41,6 +43,10 @@ async def select(message: Message):
     elif text in (BUTTON_MAIN_MENU, ):
         set_state(user_id=message.from_user.id)
         await bot.send_message(chat_id=message.from_user.id, text=text, reply_markup=main_menu(user_id))
+
+    else:
+        text = await random_answer()
+        await bot.send_message(chat_id=user_id, text=text)
 
 
 @bot.message_handler(func=lambda message: get_state(user_id=message.from_user.id) == CREATE_FINANCE)
@@ -127,8 +133,19 @@ async def name_table_finance(message: Message):
         await bot.send_message(chat_id=user_id, text='Какой вид отчета?', reply_markup=report_menu())
 
     # Все операции
-    elif text == BUTTONS_MENU_FINANCE[3]:
-        ...
+    # elif text == BUTTONS_MENU_FINANCE[3]:
+    #     ...
+
+    else:
+        text = check_sum(number=text)
+        if text is None:
+            text = await random_answer()
+            await bot.send_message(chat_id=user_id, text=text)
+        else:
+            # text = await random_answer()
+            set_state(user_id=user_id, state=SELECT_CREDIT_OR_DEBIT)
+            set_state_sum_operation(user_id=user_id, sum_operation=text)
+            await bot.send_message(chat_id=user_id, text=text, reply_markup=buttons_credit_or_debit())
 
 
 @bot.message_handler(func=lambda message: get_state(user_id=message.from_user.id) == DELETE_FINANCE)
@@ -148,6 +165,10 @@ async def delete_name_table(message: Message):
         set_state(user_id=user_id, state=NAME_TABLE_FINANCE)
         await bot.send_message(chat_id=user_id, text=f'Правильно 😁',
                                reply_markup=menu_finance(user_id=user_id))
+
+    else:
+        text = await random_answer()
+        await bot.send_message(chat_id=user_id, text=text)
 
 
 def check_sum(number: str) -> Optional[float]:

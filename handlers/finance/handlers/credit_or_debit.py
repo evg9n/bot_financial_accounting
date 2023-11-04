@@ -3,19 +3,21 @@ from telebot.types import Message
 from handlers.finance.handlers.basic import check_sum
 from keyboards.inline.finance import categories_credit, select_date
 from keyboards.reply.basic import main_menu
-from keyboards.reply.finance import menu_finance
+from keyboards.reply.finance import menu_finance, BUTTONS_CREDIT_OR_DEBIT
 from keyboards.reply.basic import BUTTON_MAIN_MENU, BUTTONS_BACK
 from loader import bot
 from states.finance import DEBIT_FINANCE, CREDIT_FINANCE, NAME_TABLE_FINANCE, DATE_FINANCE, NAME_FINANCE, \
-    SELECT_CATEGORIES_FINANCE
+    SELECT_CATEGORIES_FINANCE, SELECT_CREDIT_OR_DEBIT
 from utils.other import update_date, break_ranks
+from utils.plug import random_answer
 from work_database.get import get_state, get_names_finance_id, get_state_type_operation
 from work_database.set import (set_state, set_state_sum_operation, set_state_message_id,
                                set_state_categories_operation, set_table_finance_operations, set_state_type_operation)
 from utils.texts_messages import TEXT_MAIN_MENU, TEXT_INPUT_SUM
 
 
-@bot.message_handler(func=lambda message: get_state(user_id=message.from_user.id) in (DEBIT_FINANCE, CREDIT_FINANCE))
+@bot.message_handler(func=lambda message: (get_state(user_id=message.from_user.id) in
+                                           (DEBIT_FINANCE, CREDIT_FINANCE, SELECT_CREDIT_OR_DEBIT)))
 async def sum_debit_or_kredit(message: Message):
     """Обработчик прихода и расхода"""
     user_id = message.from_user.id
@@ -34,26 +36,40 @@ async def sum_debit_or_kredit(message: Message):
         return
     current_state = get_state(user_id=user_id)
 
-    # Проверка полученной суммы
-    number = check_sum(number=number)
-    if number is None:
-        text = "Не похоже на денежную сумму🤔\nПопробуй пожалуйста другое число😊"
-        await bot.send_message(chat_id=user_id, text=text)
-    else:
-        set_state_message_id(user_id=user_id, message_id=message.message_id)
-
-        if current_state == DEBIT_FINANCE:
-            set_state(user_id=user_id, state=DATE_FINANCE)
-            set_state_sum_operation(user_id=user_id, sum_operation=number)
-            set_state_type_operation(user_id=user_id, debit=True)
-            set_state_categories_operation(user_id=user_id)
-            await bot.send_message(chat_id=user_id, text='Выбери дату:', reply_markup=select_date())
-
-        elif current_state == CREDIT_FINANCE:
-            set_state_sum_operation(user_id=user_id, sum_operation=number)
+    if current_state == SELECT_CREDIT_OR_DEBIT:
+        if number == BUTTONS_CREDIT_OR_DEBIT[0]:
             set_state_type_operation(user_id=user_id)
             set_state(user_id=user_id, state=SELECT_CATEGORIES_FINANCE)
             await bot.send_message(chat_id=user_id, text='Выбери категорию расхода:', reply_markup=categories_credit())
+        elif number == BUTTONS_CREDIT_OR_DEBIT[1]:
+            set_state_type_operation(user_id=user_id, debit=True)
+            set_state(user_id=user_id, state=DATE_FINANCE)
+            await bot.send_message(chat_id=user_id, text='Выбери дату:', reply_markup=select_date())
+        else:
+            text = await random_answer()
+            await bot.send_message(chat_id=user_id, text=text)
+
+    else:
+        # Проверка полученной суммы
+        number = check_sum(number=number)
+        if number is None:
+            text = "Не похоже на денежную сумму🤔\nПопробуй пожалуйста другое число😊"
+            await bot.send_message(chat_id=user_id, text=text)
+        else:
+            set_state_message_id(user_id=user_id, message_id=message.message_id)
+
+            if current_state == DEBIT_FINANCE:
+                set_state(user_id=user_id, state=DATE_FINANCE)
+                set_state_sum_operation(user_id=user_id, sum_operation=number)
+                set_state_type_operation(user_id=user_id, debit=True)
+                set_state_categories_operation(user_id=user_id)
+                await bot.send_message(chat_id=user_id, text='Выбери дату:', reply_markup=select_date())
+
+            elif current_state == CREDIT_FINANCE:
+                set_state_sum_operation(user_id=user_id, sum_operation=number)
+                set_state_type_operation(user_id=user_id)
+                set_state(user_id=user_id, state=SELECT_CATEGORIES_FINANCE)
+                await bot.send_message(chat_id=user_id, text='Выбери категорию расхода:', reply_markup=categories_credit())
 
 
 @bot.message_handler(func=lambda message: get_state(user_id=message.from_user.id) == NAME_FINANCE)
@@ -113,3 +129,7 @@ async def other(message: Message):
         elif NAME_FINANCE == current_state:
             set_state(user_id=user_id, state=DATE_FINANCE)
             await bot.send_message(chat_id=user_id, text=TEXT_INPUT_SUM, reply_markup=select_date())
+
+    else:
+        text = await random_answer()
+        await bot.send_message(chat_id=user_id, text=text)

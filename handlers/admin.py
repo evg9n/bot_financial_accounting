@@ -10,6 +10,7 @@ from keyboards.reply.basic import main_menu
 from loader import bot
 from states.admin import TEXT_MAILING_ADMIN, BUTTONS_MAILING_TEXT_ADMIN, PHOTOS_MAILING_ADMIN_STATE, \
     BUTTONS_MAILING_URL_ADMIN, SEND_MAILING_ADMIN
+from utils.plug import random_answer
 from work_database.get import get_state, get_users
 from work_database.set import set_state, pop_user
 
@@ -190,5 +191,5 @@ async def send_mailing(message: Message):
         await bot.send_message(chat_id=user_id, text=text, reply_markup=main_menu(user_id))
 
     else:
-        text = f'Что-то? Я не понял'
-        await bot.send_message(chat_id=user_id, text=text, reply_markup=mailing_keyboard(confirm=True))
+        text = await random_answer()
+        await bot.send_message(chat_id=user_id, text=text)

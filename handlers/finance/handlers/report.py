@@ -33,3 +33,4 @@ async def menu_report(message: Message):
 
         await bot.send_message(chat_id=user_id, text='Выбери с какого периода:',
                                reply_markup=select_date_report_inline(start=True))
+

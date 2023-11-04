@@ -11,6 +11,8 @@ from work_database.get import get_state, get_users
 from keyboards.reply.basic import main_menu, main_menu_buttons, main_menu_buttons_admin
 from keyboards.reply.finance import list_finance
 from utils.texts_messages import TEXT_START, TEXT_MY_FINANCE
+from utils.plug import random_answer
+
 
 log = getLogger('handler_basic')
 
@@ -60,6 +62,6 @@ async def my_finance(message: Message):
         await bot.send_message(chat_id=user_id, text=text)
 
     else:
-        text = "Что-то непонятное ты пишешь🤔"
+        text = await random_answer()
         await bot.send_message(chat_id=user_id, text=text,
                                reply_markup=main_menu(message.from_user.id))
