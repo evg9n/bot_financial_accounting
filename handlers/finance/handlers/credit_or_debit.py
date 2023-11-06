@@ -36,15 +36,20 @@ async def sum_debit_or_kredit(message: Message):
         return
     current_state = get_state(user_id=user_id)
 
+    # Проверка ввода с меню финанса
     if current_state == SELECT_CREDIT_OR_DEBIT:
+        set_state_message_id(user_id=user_id, message_id=message.message_id)
+        # Приход
         if number == BUTTONS_CREDIT_OR_DEBIT[0]:
+            set_state(user_id=user_id, state=DATE_FINANCE)
+            set_state_type_operation(user_id=user_id, debit=True)
+            set_state_categories_operation(user_id=user_id)
+            await bot.send_message(chat_id=user_id, text='Выбери дату:', reply_markup=select_date())
+        # Расход
+        elif number == BUTTONS_CREDIT_OR_DEBIT[1]:
             set_state_type_operation(user_id=user_id)
             set_state(user_id=user_id, state=SELECT_CATEGORIES_FINANCE)
             await bot.send_message(chat_id=user_id, text='Выбери категорию расхода:', reply_markup=categories_credit())
-        elif number == BUTTONS_CREDIT_OR_DEBIT[1]:
-            set_state_type_operation(user_id=user_id, debit=True)
-            set_state(user_id=user_id, state=DATE_FINANCE)
-            await bot.send_message(chat_id=user_id, text='Выбери дату:', reply_markup=select_date())
         else:
             text = await random_answer()
             await bot.send_message(chat_id=user_id, text=text)

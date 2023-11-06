@@ -10,7 +10,7 @@ BUTTONS_MENU_FINANCE = ('Приход⬆️', 'Расход⬇️',
                         BUTTONS_BACK, BUTTON_MAIN_MENU,
                         'Удалить финанс❌',)
 BUTTONS_YES_OR_NO = ('Конечно', 'Ой, нет', )
-BUTTONS_CREDIT_OR_DEBIT = ('Расход', 'Доход', BUTTONS_BACK, BUTTON_MAIN_MENU)
+BUTTONS_CREDIT_OR_DEBIT = ('Доход', 'Расход', BUTTONS_BACK, BUTTON_MAIN_MENU)
 
 
 def buttons_credit_or_debit() -> ReplyKeyboardMarkup:
