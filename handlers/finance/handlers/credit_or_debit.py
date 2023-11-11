@@ -3,7 +3,7 @@ from telebot.types import Message
 from handlers.finance.handlers.basic import check_sum
 from keyboards.inline.finance import categories_credit, select_date
 from keyboards.reply.basic import main_menu
-from keyboards.reply.finance import menu_finance, BUTTONS_CREDIT_OR_DEBIT
+from keyboards.reply.finance import menu_finance, BUTTONS_CREDIT_OR_DEBIT, main_menu_or_back
 from keyboards.reply.basic import BUTTON_MAIN_MENU, BUTTONS_BACK
 from loader import bot
 from states.finance import DEBIT_FINANCE, CREDIT_FINANCE, NAME_TABLE_FINANCE, DATE_FINANCE, NAME_FINANCE, \
@@ -44,11 +44,13 @@ async def sum_debit_or_kredit(message: Message):
             set_state(user_id=user_id, state=DATE_FINANCE)
             set_state_type_operation(user_id=user_id, debit=True)
             set_state_categories_operation(user_id=user_id)
+            await bot.send_message(chat_id=user_id, text='Когда было?', reply_markup=main_menu_or_back())
             await bot.send_message(chat_id=user_id, text='Выбери дату:', reply_markup=select_date())
         # Расход
         elif number == BUTTONS_CREDIT_OR_DEBIT[1]:
             set_state_type_operation(user_id=user_id)
             set_state(user_id=user_id, state=SELECT_CATEGORIES_FINANCE)
+            await bot.send_message(chat_id=user_id, text='Что за расход?', reply_markup=main_menu_or_back())
             await bot.send_message(chat_id=user_id, text='Выбери категорию расхода:', reply_markup=categories_credit())
         else:
             text = await random_answer()

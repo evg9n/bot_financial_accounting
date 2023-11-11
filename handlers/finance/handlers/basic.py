@@ -8,7 +8,7 @@ from loader import bot
 from keyboards.reply.basic import main_menu, main_menu_buttons
 from keyboards.reply.finance import list_finance, BUTTONS_ADD_FINANCE, NOT_FINANCE, \
     create_finance, menu_finance, BUTTONS_MENU_FINANCE, main_menu_or_back, yes_or_no, BUTTONS_YES_OR_NO, \
-    buttons_credit_or_debit
+    buttons_credit_or_debit, BUTTONS_CREDIT_OR_DEBIT
 from keyboards.reply.basic import BUTTON_MAIN_MENU, BUTTONS_BACK
 from states.report import TYPE_REPORT
 from utils.plug import random_answer
@@ -132,19 +132,15 @@ async def name_table_finance(message: Message):
         set_state(user_id=user_id, state=TYPE_REPORT)
         await bot.send_message(chat_id=user_id, text='Какой вид отчета?', reply_markup=report_menu())
 
-    # Все операции
-    # elif text == BUTTONS_MENU_FINANCE[3]:
-    #     ...
-
     else:
         text = check_sum(number=text)
         if text is None:
             text = await random_answer()
             await bot.send_message(chat_id=user_id, text=text)
         else:
-            # text = await random_answer()
             set_state(user_id=user_id, state=SELECT_CREDIT_OR_DEBIT)
             set_state_sum_operation(user_id=user_id, sum_operation=text)
+            text = f'{BUTTONS_CREDIT_OR_DEBIT[0]} или {BUTTONS_CREDIT_OR_DEBIT[1]}?'
             await bot.send_message(chat_id=user_id, text=text, reply_markup=buttons_credit_or_debit())
 
 
