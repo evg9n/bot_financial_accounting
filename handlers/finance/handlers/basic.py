@@ -44,6 +44,7 @@ async def select(message: Message):
         set_state(user_id=message.from_user.id)
         await bot.send_message(chat_id=message.from_user.id, text=text, reply_markup=main_menu(user_id))
 
+    # Заглушка
     else:
         text = await random_answer()
         await bot.send_message(chat_id=user_id, text=text)
@@ -63,6 +64,7 @@ async def create(message: Message):
         # Проверка полученного названия финанса
         result = check_name(name=name, user_id=user_id)
         if result is None:
+            # Создание финанса
             set_names_finance(user_id=user_id, name=name)
             set_state(user_id=message.from_user.id, state=SELECT_FINANCE)
             await bot.send_message(chat_id=user_id, text='Готово', reply_markup=list_finance(user_id=user_id))
