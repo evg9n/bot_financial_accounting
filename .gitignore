@@ -133,7 +133,7 @@ dmypy.json
 # Database
 *.db
 data/*
-!data/.gitkeep
+!data/dummy.txt
 
 # logs
 logs/*
