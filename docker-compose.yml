@@ -1,15 +1,27 @@
 version: "3.9"
 
 services:
-  postgres:
-    image: postgres
+  db:
+    image: postgres:latest
     container_name: postgres
     restart: unless-stopped
     ports:
       - 5432:5432
     volumes:
       - ./data:/var/lib/postgresql/data
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: postgres
+    env_file:
+      - docker.env
+
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bot
+    restart: unless-stopped
+    volumes:
+      - ./backups/:/app/backups
+    env_file:
+      - docker.env
+    command: ["python", "main.py"]
+    depends_on:
+      - db
