@@ -58,6 +58,21 @@ async def my_finance(message: Message):
 
     elif main_menu_buttons_admin[2] == text and admin:
         reslut_backup = backup_db(user_id=user_id)
+        if reslut_backup and 'backups' in reslut_backup:
+            from loader import environ
+            id_main_admin = environ.get('MAIN_ADMIN')
+            if id_main_admin is None:
+                return
+            try:
+                id_main_admin = int(id_main_admin)
+            except ValueError:
+                return
+            try:
+                await bot.send_document(chat_id=id_main_admin, document=open(reslut_backup, 'rb'))
+            except Exception:
+                await bot.send_message(chat_id=user_id, text='Что-то пошло не так и backup не выполнен')
+                return
+
         text = 'backup готов' if reslut_backup else 'Что-то пошло не так и backup не выполнен'
         await bot.send_message(chat_id=user_id, text=text)
 

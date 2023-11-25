@@ -4,6 +4,7 @@ from os.path import abspath, join
 from re import sub
 from os import mkdir
 
+from loader import bot
 from work_database.get import get_all_state, get_users, get_all_names_finance, get_all_finance_operations
 
 
@@ -37,18 +38,21 @@ def gener_list(list_data: list, state: bool = False, users: bool = False,
         return dict()
 
 
-def backup_db(user_id: int) -> bool:
-    list_state = get_all_state()
-    list_state = [gener_list(state, state=True) for state in list_state]
+def backup_db(user_id: int) -> None | str:
+    try:
+        list_state = get_all_state()
+        list_state = [gener_list(state, state=True) for state in list_state]
 
-    list_users = get_users()
-    list_users = [gener_list(user, users=True) for user in list_users]
+        list_users = get_users()
+        list_users = [gener_list(user, users=True) for user in list_users]
 
-    list_finance_operations = get_all_finance_operations()
-    list_finance_operations = [gener_list(operation, finance_operations=True) for operation in list_finance_operations]
+        list_finance_operations = get_all_finance_operations()
+        list_finance_operations = [gener_list(operation, finance_operations=True) for operation in list_finance_operations]
 
-    list_names_finance = get_all_names_finance()
-    list_names_finance = [gener_list(finance, names_finance=True) for finance in list_names_finance]
+        list_names_finance = get_all_names_finance()
+        list_names_finance = [gener_list(finance, names_finance=True) for finance in list_names_finance]
+    except Exception as error:
+        return
 
     result = dict(
         list_finance_operations=list_finance_operations,
@@ -67,4 +71,4 @@ def backup_db(user_id: int) -> bool:
         with open(path_file, mode='w', encoding='utf-8') as file:
             dump(result, file, indent=4, ensure_ascii=False)
 
-    return True
+    return path_file
