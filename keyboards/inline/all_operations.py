@@ -49,12 +49,22 @@ def all_operations_inline(current_operations: list, current_sheet: int, max_shee
     buttons.append(InlineKeyboardButton(text="Категория", callback_data=callback_data))
 
     for operation in current_operations:
+        """
+        0 - id
+        1 - user_id
+        2 - номер таблицы
+        3 - сумма
+        4 - расход/доход
+        5 - категория или none
+        6 - комментарий
+        7 - дата
+        """
         callback_data_operation = f'all_operations_inline_{operation[0]}'
         buttons.append(InlineKeyboardButton(text=f"{'🟢' if operation[4] == 'доход' else '🔴'}{operation[4]}",
                                             callback_data=callback_data_operation))
         buttons.append(InlineKeyboardButton(text=break_ranks(operation[3]), callback_data=callback_data_operation))
 
-        buttons.append(InlineKeyboardButton(text=operation[5] if operation[5] != 'None' else ' ',
+        buttons.append(InlineKeyboardButton(text=operation[6] if operation[6] != 'None' else ' ',
                                             callback_data=callback_data_operation))
     back_button = False if current_sheet == 0 else True
     next_button = False if current_sheet + 1 == max_sheet else True
