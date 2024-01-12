@@ -144,8 +144,8 @@ async def calendar_2(call: CallbackQuery):
     """Обработка календаря ДО"""
     user_id = call.from_user.id
     message_id = call.message.message_id
-    min_date = get_state_date(user_id=user_id)
-    result, key, step = Calendar(calendar_id=2, min_date=min_date).process(call_data=call.data)
+    min_day = get_state_date(user_id=user_id)
+    result, key, step = Calendar(calendar_id=2, min_day=min_day).process(call_data=call.data)
 
     if not result and key:
         await bot.edit_message_text(text=f"Выбери {LSTEP[step]} окончание:",

@@ -1,4 +1,5 @@
 import datetime
+from datetime import date
 from typing import Optional, Union
 
 from loader import environ
@@ -252,6 +253,21 @@ def get_all_state() -> list:
     sql_query = "SELECT * FROM state"
     result = get_query(sql_query=sql_query)
     return result
+
+
+def get_old_date(user_id: int, name_table: int) -> date:
+    """
+    Получить самую старую дату
+    :param user_id: id пользователя
+    :param name_table: имя финанса
+    :return: текущий финанс
+    """
+    sql_query = (f"""SELECT date FROM finance_operations 
+                WHERE user_id = {user_id} AND name_table = {name_table}
+                ORDER BY date DESC LIMIT 1""")
+
+    result = get_query(sql_query=sql_query)
+    return result[0][0]
 
 
 def get_test():

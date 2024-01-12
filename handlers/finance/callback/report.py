@@ -10,7 +10,7 @@ from keyboards.inline.report import SELECT_DATE_BUTTON_REPORT, select_date_repor
 from utils.other import update_date, break_ranks
 from work_database.set import set_state_date, set_state
 from work_database.get import get_state, get_names_finance_id, get_for_all_report, \
-    get_state_name_table, get_state_date, get_for_debit_or_credit_report
+    get_state_name_table, get_state_date, get_for_debit_or_credit_report, get_old_date
 from utils.calendar import Calendar, LSTEP
 from states.report import *
 
@@ -94,8 +94,8 @@ async def select_date2_report(call: CallbackQuery):
         await send_report(user_id=user_id, message_id=message_id)
 
     elif text == SELECT_DATE_BUTTON_REPORT[3]:
-        min_date = get_state_date(user_id=user_id)
-        calendar_inline, step = Calendar(calendar_id=2, min_date=min_date).build()
+        min_day = get_state_date(user_id=user_id)
+        calendar_inline, step = Calendar(calendar_id=2, min_day=min_day).build()
         await bot.delete_message(chat_id=call.message.chat.id,
                                  message_id=message_id)
         await bot.send_message(chat_id=call.message.chat.id,
@@ -116,8 +116,8 @@ async def calendar_2(call: CallbackQuery):
     """Обработка календаря ДО"""
     user_id = call.from_user.id
     message_id = call.message.message_id
-    min_date = get_state_date(user_id=user_id)
-    result, key, step = Calendar(calendar_id=2, min_date=min_date).process(call_data=call.data)
+    min_day = get_state_date(user_id=user_id)
+    result, key, step = Calendar(calendar_id=2, min_day=min_day).process(call_data=call.data)
 
     if not result and key:
         await bot.edit_message_text(text=f"Выбери до какого числа {LSTEP[step]}:",
