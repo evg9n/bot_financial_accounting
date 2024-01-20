@@ -14,4 +14,4 @@ jobs:
           username: ${{ secrets.USERNAME_SERVER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            ~/update_bot_financial_accounting
+            ~/.update_bot_financial_accounting
