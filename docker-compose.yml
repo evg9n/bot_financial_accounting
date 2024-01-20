@@ -12,3 +12,9 @@ services:
     env_file:
       - docker.env
     command: ["python", "main.py"]
+    networks:
+      - mynetwork
+
+networks:
+  mynetwork:
+    external: true
