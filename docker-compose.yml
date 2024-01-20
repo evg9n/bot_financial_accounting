@@ -12,5 +12,3 @@ services:
     env_file:
       - docker.env
     command: ["python", "main.py"]
-    depends_on:
-      - db
