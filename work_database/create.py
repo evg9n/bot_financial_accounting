@@ -1,4 +1,4 @@
-from loader import environ
+from loader import c
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from psycopg2 import connect, errors
 from logging import getLogger
@@ -7,11 +7,11 @@ from traceback import format_exc
 
 log = getLogger('create_database')
 
-USER = environ.get('USER_NAME')
-NAME_DATABASE = environ.get('NAME_DATABASE')
-PASSWORD = environ.get('PASSWORD')
-HOST = environ.get('HOST')
-PORT = int(environ.get('PORT'))
+USER = c.USER_NAME
+NAME_DATABASE = c.NAME_DATABASE
+PASSWORD = c.PASSWORD
+HOST = c.HOST
+PORT = c.PORT
 
 
 def connect_database(with_database: bool = False) -> connect:
@@ -67,10 +67,10 @@ def create_query(sql_query: str, with_database=False) -> bool:
 
 def create_database() -> bool:
     """
-    Создании базы данных
+    Создание базы данных
     :return: bool рузультат выполнения
     """
-    name_database = environ.get('NAME_DATABASE')
+    name_database = NAME_DATABASE
     sql_query = f"CREATE DATABASE {name_database}"
     return create_query(sql_query=sql_query)
 
@@ -80,7 +80,7 @@ def drop_database() -> bool:
     Удаление базы данных
     :return: bool рузультат выполнения
     """
-    name_database = environ.get('NAME_DATABASE')
+    name_database = NAME_DATABASE
     sql_query = f"DROP DATABASE {name_database}"
     return create_query(sql_query=sql_query)
 

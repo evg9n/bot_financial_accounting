@@ -2,23 +2,19 @@ import datetime
 from datetime import date
 from typing import Optional, Union
 
-from loader import environ
+from loader import c
 from psycopg2 import connect, errors
 from logging import getLogger
 from traceback import format_exc
-from dotenv import load_dotenv
-# from os import environ
-#
-# load_dotenv()
 
 
 log = getLogger('get_database')
 
-USER = environ.get('USER_NAME')
-NAME_DATABASE = environ.get('NAME_DATABASE')
-PASSWORD = environ.get('PASSWORD')
-HOST = environ.get('HOST')
-PORT = int(environ.get('PORT'))
+USER = c.USER_NAME
+NAME_DATABASE = c.NAME_DATABASE
+PASSWORD = c.PASSWORD
+HOST = c.HOST
+PORT = c.PORT
 
 
 def get_query(sql_query: str) -> list:
