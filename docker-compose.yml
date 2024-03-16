@@ -10,7 +10,7 @@ services:
     volumes:
       - ./backups/:/app/backups
     env_file:
-      - docker.env
+      - ./env/docker.env
     command: ["python", "main.py"]
     networks:
       - mynetwork
